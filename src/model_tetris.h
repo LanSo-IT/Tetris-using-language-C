@@ -1,6 +1,11 @@
 #ifndef MODEL_TETRIS_H
 #define MODEL_TETRIS_H
 
+#include "shapes_type.h"
+#include "move_type.h"
+#include "block.h"
+#include "piece.h"
+
 Block** InitialiseGrid();
 Block* InitialiseRandomPieces(Block** grid);
 bool MovePiece(enum MoveType moveType,Block* piece,Block** grid);

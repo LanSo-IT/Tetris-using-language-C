@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "model_tetris.h"
+
 //struct { double x; double y; } ball_speed;
 struct { double x; double y;  double vx; double vy;} ball;
 
@@ -78,6 +80,7 @@ void draw()
 
 int main(int argc, char** argv)
 {
+	/*
     if (SDL_Init(SDL_INIT_VIDEO) != 0 )
     {
 		return 1;
@@ -120,6 +123,20 @@ int main(int argc, char** argv)
 		SDL_UpdateWindowSurface(pWindow);
 
 	}
-    SDL_Quit();
+    SDL_Quit();*/
+		Block** grid = InitialiseGrid();
+	  Block* pieces;
+	  bool continueGame = true;
+	  PrintGrid(grid);
+	  while(continueGame) {
+	    pieces = InitialiseRandomPieces(grid);
+	    for(int i=0;i<23;i++){
+	         MovePiece(Down,pieces,grid);
+	    }
+	    SetPiecePlaced(pieces,grid);
+	    ProceedCompleteLine(pieces,grid);
+	    if(LostConditionMeet(grid)) continueGame = false;
+	    PrintGrid(grid);
+	  }
     return 0;
 }
