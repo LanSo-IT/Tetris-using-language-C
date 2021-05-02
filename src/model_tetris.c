@@ -647,7 +647,7 @@ bool LostConditionMeet(Block** grid){
     return false;
 }
 
-int main(){
+int demo(){
 
   Block** grid = InitialiseGrid();
   Block* pieces;
