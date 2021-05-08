@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <windows.h>
+#include <time.h>
 
 #include "model_tetris.h"
 
@@ -45,8 +46,6 @@ void init()
 	//plancheSprites = SDL_LoadBMP("../bin/default_cell.bmp");
 	BackgroundSprites = SDL_LoadBMP("../bin/wall_cell.bmp");
 	SDL_SetColorKey(plancheSprites, true, 0);  // 0: 00/00/00 noir -> transparent
-
-
 }
 
 
@@ -90,12 +89,26 @@ void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight)
  }
 }
 
+long currentTimeMillis() {
+  struct timeval time;
+  gettimeofday(&time, NULL);
+
+  return time.tv_sec * 1000 + time.tv_usec / 1000;
+}
+
+
 
 int main(int argc, char** argv)
 {
 		Block** grid = InitialiseGrid();
 		Block* pieces;
 		bool continueGame = true;
+		bool timeIsnotOverAtTheRow;
+		bool canBeMovedLower = true;
+		int rowCompleted = 0;
+		long timeBeforeMoveToNextRow;
+		SDL_Event PlayerEvent;
+
 		if (SDL_Init(SDL_INIT_VIDEO) != 0 )
     {
 			return 1;
@@ -107,7 +120,7 @@ int main(int argc, char** argv)
 			SDL_Event event;
 			/*while (!quit && SDL_PollEvent(&event))
 			{
-				switch (event.type)
+				switch (PlayerEvent.type)
 				{
 				case SDL_QUIT:
 					quit = true;
@@ -129,21 +142,37 @@ int main(int argc, char** argv)
 				default: break;
 				}
 			}*/
-			//prev = now;
-			//now = SDL_GetPerformanceCounter();
-			//delta_t = (double)((now - prev) * 1000 / (double)SDL_GetPerformanceFrequency());
-
 		  PrintGrid(grid);
 		  while(continueGame) {
 				drawBackground();
 				drawGrid(grid,352,32);
 		    pieces = InitialiseRandomPieces(grid);
-		    for(int i=0;i<23;i++){
-		         MovePiece(Down,pieces,grid);
+				canBeMovedLower = true;
+
+		    while(canBeMovedLower){
+						timeBeforeMoveToNextRow = currentTimeMillis() + GetBlockSpeed(rowCompleted) ; //next seconde = 1000
+						while ( timeBeforeMoveToNextRow > currentTimeMillis() ){
+							while (SDL_PollEvent(&event)) {
+								switch (PlayerEvent.key.keysym.sym){ //event.type
+									case SDLK_LEFT:  printf("gauche"); MovePiece(Left,pieces,grid); break;
+									case SDLK_RIGHT: MovePiece(Right,pieces,grid); break;
+									case SDLK_UP : RotatePiece(pieces,grid); break;
+									case SDLK_DOWN : timeBeforeMoveToNextRow = currentTimeMillis(); break;
+									case SDL_MOUSEBUTTONDOWN : RotatePiece(pieces,grid); break;
+								}
+							}
+							drawGrid(grid,352,32);
+							SDL_UpdateWindowSurface(pWindow);
+
+						}
+						canBeMovedLower = MovePiece(Down,pieces,grid);
+						PrintGrid(grid);
 		    }
+
 		    SetPiecePlaced(pieces,grid);
-		    ProceedCompleteLine(pieces,grid);
+		    rowCompleted = ProceedCompleteLine(pieces,grid);
 		    if(LostConditionMeet(grid)) continueGame = false;
+
 		    PrintGrid(grid);
 			}
 			SDL_UpdateWindowSurface(pWindow);

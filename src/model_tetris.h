@@ -9,9 +9,11 @@
 Block** InitialiseGrid();
 Block* InitialiseRandomPieces(Block** grid);
 bool MovePiece(enum MoveType moveType,Block* piece,Block** grid);
+bool RotatePiece(Block* piece,Block** grid);
 void SetPiecePlaced(Block* piece,Block** grid);
 bool ProceedCompleteLine(Block* piece,Block** grid);
 bool LostConditionMeet(Block** grid);
+long GetBlockSpeed(int rowCompleted);
 
 void PrintGrid(Block** grid); //debug purpose
 Block* InitialisePieces(enum ShapeType type,Block** grid);// debug purpose
