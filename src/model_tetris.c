@@ -614,7 +614,8 @@ void RemoveLine(Block** grid,int row){
 void MoveGridBlocksDown(Block** grid,int row){
     while (row >0){
         for(int column = 0; column < COLUMN; column++){
-            grid[row][column] = grid[row-1][column];
+            grid[row][column].type = grid[row-1][column].type;
+            grid[row][column].active = grid[row-1][column].active;
         }
         row--;
     }
@@ -625,7 +626,6 @@ void MoveGridBlocksDown(Block** grid,int row){
  */
 void SetPiecePlaced(Block* piece,Block** grid){
     for(int i=0 ; i< BLOCKS_PER_PIECES; i++) grid[piece[i].row][piece[i].column].active = false;
-
 }
 /* Check if a piece is present (not EMPTY) and not active(not usable by the player anymore) inside the row no 3
  * The hidden area is consider as the forbidden area, thus player have the lost the game
