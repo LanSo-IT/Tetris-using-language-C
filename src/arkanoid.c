@@ -215,7 +215,6 @@ bool GameDuo()
 
 		init();
 
-
 		while (continueGame)
 		{
 			SDL_Event event;
@@ -233,7 +232,6 @@ bool GameDuo()
 					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
 					canBeMovedLowerPlayer1 = true;
 				}
-
 				if ( ! canBeMovedLowerPlayer2 ){
 					SetPiecePlaced(piecesPlayer2,gridPlayer2);
 					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
@@ -246,21 +244,23 @@ bool GameDuo()
 						if (timerPlayer1 <= currentTimeMillis() ) {
 							timerPlayer1 = currentTimeMillis() + GetBlockSpeed(contorRows); //speed regarding completed rows
 							canBeMovedLowerPlayer1 = MovePiece(Down,piecesPlayer1,gridPlayer1);
+							printf("time 1\n");
 						}
 						if (timerPlayer2 <= currentTimeMillis() )  {
 							timerPlayer2 = currentTimeMillis() + GetBlockSpeed(contorRows);
 							canBeMovedLowerPlayer2 = MovePiece(Down,piecesPlayer2,gridPlayer2);
+							printf("time 2\n");
 						}
 
-						while ( (timerPlayer1 >= currentTimeMillis()) || (timerPlayer2 >= currentTimeMillis()) ){
+						while ( (timerPlayer1 > currentTimeMillis()) && (timerPlayer2 > currentTimeMillis()) ){
 									if(kbhit()){
 										switch ((press = getch())) {
-											//P1
+											// P1
 											case KEY_Z : RotatePiece(piecesPlayer1,gridPlayer1);break;
 											case KEY_S : timerPlayer1 = currentTimeMillis(); break;
 											case KEY_Q : MovePiece(Left,piecesPlayer1,gridPlayer1); break;
 											case KEY_D : MovePiece(Right,piecesPlayer1,gridPlayer1); break;
-											//P2
+											// P2
 											case KEY_UP: RotatePiece(piecesPlayer2,gridPlayer2); break;
 											case KEY_DOWN: timerPlayer2 = currentTimeMillis(); break;
 											case KEY_LEFT: MovePiece(Left,piecesPlayer2,gridPlayer2); break;
@@ -268,13 +268,9 @@ bool GameDuo()
 										}
 										drawGrid(gridPlayer1,32,32);
 										drawGrid(gridPlayer2,608,32);
-										PrintGrid(gridPlayer1);
-
 										SDL_UpdateWindowSurface(pWindow);
 									}
 						}
-						printf("not loop\n");
-
 						drawGrid(gridPlayer1,32,32);
 						drawGrid(gridPlayer2,608,32);
 						SDL_UpdateWindowSurface(pWindow);
@@ -283,9 +279,7 @@ bool GameDuo()
 					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
 					rowsCompletedPlayer1  = 0;
 					rowsCompletedPlayer2 = 0;
-					PrintGrid(gridPlayer1);
 				}
-
 
 		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
 				if( event.type == SDL_QUIT ) quit = true;

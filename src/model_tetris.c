@@ -490,11 +490,11 @@ bool MovePiece(enum MoveType moveType,Block* piece,Block** grid){
         switch (moveType){
             case Left : if(IsNotMovableBlock(grid,piece[i].row,targetPieces[i].column)) return false; break;    //Abort if piece cannot be move
             case Right : if(IsNotMovableBlock(grid,piece[i].row,targetPieces[i].column)) return false; break;   //Abort if piece cannot be move
-            case Down : if(IsNotMovableBlock(grid,targetPieces[i].row,piece[i].column)) return false; break;       //Abort if piece cannot be move
+            case Down : if(IsNotMovableBlock(grid,targetPieces[i].row,piece[i].column)) return false; break;    //Abort if piece cannot be move
         }
     }
     RemovePiecesFromGrid(piece,grid);
-    for(int i=0; i< BLOCKS_PER_PIECES; i++){ // Uptdate new piece location
+    for(int i=0; i< BLOCKS_PER_PIECES; i++){                              // Uptdate new piece location
         piece[i] = targetPieces[i];                                       //Update of piece
         grid[piece[i].row][piece[i].column]= piece[i];                  //Update grid block
     }
