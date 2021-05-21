@@ -29,14 +29,6 @@
 #define KEY_S 115
 #define KEY_D 100
 
-
-//struct { double x; double y; } ball_speed;
-struct { double x; double y;  double vx; double vy;} ball;
-
-Uint64 prev, now; // timers
-double delta_t;  // durée frame en ms
-int x_vault;
-
 SDL_Window* pWindow = NULL;
 SDL_Surface* win_surf = NULL;
 SDL_Surface* plancheSprites = NULL;
@@ -52,12 +44,6 @@ SDL_Rect srcBlock = { 0,0, 32,32 }; // x,y, w,h (0,0) en haut a gauche  0,0,32,3
 
 SDL_Rect srcGridSolo = { 352,160, 32,32 }; // x,y, w,h (0,0) en haut a gauche  0,0,32,32
 
-
-SDL_Rect srcBall = { 0,96,24,24 };
-SDL_Rect scrVaiss = { 128,0,128,32 };
-
-
-
 void init()
 {
 	pWindow = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 672, SDL_WINDOW_SHOWN);
@@ -69,8 +55,6 @@ void init()
 	BackgroundSprites = IMG_Load("../bin/metal-background.png");
 	//SDL_SetColorKey(plancheSprites, true, 0);  // 0: 00/00/00 noir -> transparent
 }
-
-
 
 void drawBackground()
 {
@@ -244,12 +228,10 @@ bool GameDuo()
 						if (timerPlayer1 <= currentTimeMillis() ) {
 							timerPlayer1 = currentTimeMillis() + GetBlockSpeed(contorRows); //speed regarding completed rows
 							canBeMovedLowerPlayer1 = MovePiece(Down,piecesPlayer1,gridPlayer1);
-							printf("time 1\n");
 						}
 						if (timerPlayer2 <= currentTimeMillis() )  {
 							timerPlayer2 = currentTimeMillis() + GetBlockSpeed(contorRows);
 							canBeMovedLowerPlayer2 = MovePiece(Down,piecesPlayer2,gridPlayer2);
-							printf("time 2\n");
 						}
 
 						while ( (timerPlayer1 > currentTimeMillis()) && (timerPlayer2 > currentTimeMillis()) ){
@@ -280,7 +262,6 @@ bool GameDuo()
 					rowsCompletedPlayer1  = 0;
 					rowsCompletedPlayer2 = 0;
 				}
-
 		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
 				if( event.type == SDL_QUIT ) quit = true;
 			}
@@ -291,28 +272,11 @@ bool GameDuo()
 			while(shortWaitBeforeQuit > currentTimeMillis() ) {}
 
 			return true;
-
 		}
 }
 
 
 void test(){
-	Block** grid = InitialiseGrid();
-  Block* pieces;
-  bool continueGame = true;
-
-  while(continueGame) {
-    pieces = InitialiseRandomPieces(grid);
-    for(int i=0;i<23;i++){
-         MovePiece(Down,pieces,grid);
-    }
-    SetPiecePlaced(pieces,grid);
-		PrintGrid(grid);
-    ProceedCompleteLine(pieces,grid);
-    if(LostConditionMeet(grid)) continueGame = false;
-		CreatHoledLineInGrid(grid,6);
-    PrintGrid(grid);
-  }
 	while (true){}
 }
 
