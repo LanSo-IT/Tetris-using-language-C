@@ -555,6 +555,7 @@ int* GetNumberOfRowComplete(Block* piece,Block** grid){
             numberOfLineComplete++;
             for(int j=1 ; j < sizeList ;j++){ // Start at the 2nd positions [Nb][X][-][-][-] and because of sort stop before end
                 if(listCompleteRow[j] == piece[i].row) {
+                    numberOfLineComplete--;
                     break;
                 }
                 if ( (listCompleteRow[j] < piece[i].row) && (listCompleteRow[j] != -1)){
@@ -568,7 +569,6 @@ int* GetNumberOfRowComplete(Block* piece,Block** grid){
                     break;
                 }
                 else if ( listCompleteRow[j] == -1 ) {
-                    printf("neg");
                     listCompleteRow[j] = piece[i].row;
                     break;
                 }
@@ -576,6 +576,7 @@ int* GetNumberOfRowComplete(Block* piece,Block** grid){
         }
     }
     listCompleteRow[0] = numberOfLineComplete;
+
 }
 
 /* Remove from the grid the completed lines and move down the block of the player
@@ -588,7 +589,7 @@ int* GetNumberOfRowComplete(Block* piece,Block** grid){
  * Function Return the number of completed row
  * [!] PLEASE MIND: piece coordinate will not be updated
  */
-bool ProceedCompleteLine(Block* piece,Block** grid){
+int ProceedCompleteLine(Block* piece,Block** grid){
     int* specialRowsTable =  GetNumberOfRowComplete(piece,grid);//dedicated table for management of complete row
     int nbLineToDelete = specialRowsTable[0];
     for(int i=1; i <= nbLineToDelete; i++){
@@ -596,6 +597,23 @@ bool ProceedCompleteLine(Block* piece,Block** grid){
             MoveGridBlocksDown(grid,specialRowsTable[i]);
         }
     return specialRowsTable[0]; // Number of line complete, value beetween 0 and BLOCKS_PER_PIECES at the location of index 0 [Nb][..][..][..][..]
+}
+
+
+void CreatHoledLineInGrid(Block** grid,int qty){
+  for(int i=0 ; i< qty; i++){
+      MoveAllGridBlocksUp(grid);
+      SetHoledLine(grid,ROW -1 );
+  }
+}
+
+void SetHoledLine(Block** grid,int row){
+  int randomColumnHole = rand()% COLUMN +1 ;  //provide random from 1 to COLUMN
+  for(int column = 0; column < COLUMN; column++){
+      if(column != randomColumnHole) grid[row][column].type = I;               //anythipe would fit
+      else grid[row][column].type = EMPTY;               //anythipe would fit
+      grid[row][column].active = false;
+      }
 }
 
 /* Set an entier row as empty */
@@ -609,7 +627,7 @@ void RemoveLine(Block** grid,int row){
  * Block will be moved down from the index row (to the first row (<=> row at the top of the grid)
  * [!] PLEASE MIND: piece coordinate will not be updated
  * [!] PLEASE MIND: no check of line emptyness are done
- * [!] PLEASE MIND: Row index must be a empty line
+ * [!] PLEASE MIND: Row index must be an empty line
  */
 void MoveGridBlocksDown(Block** grid,int row){
     while (row >0){
@@ -618,6 +636,23 @@ void MoveGridBlocksDown(Block** grid,int row){
             grid[row][column].active = grid[row-1][column].active;
         }
         row--;
+    }
+}
+
+/* Move up every blocks based on a row index
+ * Block will be moved up from the index row (to the first row (<=> row at the top of the grid)
+ * [!] PLEASE MIND: piece coordinate will not be updated
+ * [!] PLEASE MIND: no checks of line are done
+ * [!] PLEASE MIND: Row index must be a empty line
+ */
+void MoveAllGridBlocksUp(Block** grid){
+    int row = 0;
+    while (row <ROW -1){
+        for(int column = 0; column < COLUMN; column++){
+            grid[row][column].type = grid[row+1][column].type;
+            grid[row][column].active = grid[row+1][column].active;
+        }
+        row++;
     }
 }
 

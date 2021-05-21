@@ -15,7 +15,9 @@ bool ProceedCompleteLine(Block* piece,Block** grid);
 bool LostConditionMeet(Block** grid);
 long GetBlockSpeed(int rowCompleted);
 
+void CreatHoledLineInGrid(Block** grid,int qty);
+
 void PrintGrid(Block** grid); //debug purpose
-Block* InitialisePieces(enum ShapeType type,Block** grid);// debug purpose
+Block* InitialisePieces(enum ShapeType type,Block** grid);
 
 #endif // MODEL_TETRIS_H

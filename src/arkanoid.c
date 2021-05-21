@@ -14,10 +14,21 @@
 #define VISIBLE_ROW 20  // [ !!! ]  lines but there is 4 hidden row at the top of the grid => meaning 24 ROW
 #define COLUMN 10
 
+#define KEY_PAV_NUM_1 49
+#define KEY_PAV_NUM_2 50
+#define KEY_PAV_NUM_3 51
+
+//PLayer 1
 #define KEY_UP 72
 #define KEY_DOWN 80
 #define KEY_LEFT 75
 #define KEY_RIGHT 77
+//Player 2
+#define KEY_Z 122
+#define KEY_Q 113
+#define KEY_S 115
+#define KEY_D 100
+
 
 //struct { double x; double y; } ball_speed;
 struct { double x; double y;  double vx; double vy;} ball;
@@ -108,10 +119,14 @@ long currentTimeMillis() {
 
   return time.tv_sec * 1000 + time.tv_usec / 1000;
 }
+bool IsTimerOver(long inputTimeOver){
+	return inputTimeOver > currentTimeMillis();
+}
+long GetNextTimeOver(int contorRows){
+	return currentTimeMillis() + GetBlockSpeed(contorRows);
+}
 
-
-
-int main(int argc, char** argv)
+bool GameSolo()
 {
 		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
 
@@ -141,7 +156,7 @@ int main(int argc, char** argv)
 				canBeMovedLower = true;
 		    while(canBeMovedLower){
 						timeBeforeMoveToNextRow = currentTimeMillis() + GetBlockSpeed(contorRows) ; //speed regarding completed rows
-						while ( timeBeforeMoveToNextRow > currentTimeMillis() ){
+					while ( timeBeforeMoveToNextRow > currentTimeMillis() ){
 									if(kbhit()){
 										switch ((press = getch())) {
 											case KEY_UP: RotatePiece(pieces,grid); break;
@@ -162,6 +177,7 @@ int main(int argc, char** argv)
 		    rowsCompleted = ProceedCompleteLine(pieces,grid);
 				if (rowsCompleted > 0) {
 					contorRows =+ rowsCompleted ;
+					printf("Row done :%d\n",rowsCompleted);
 					PrintGrid(grid);
 				}
 		    if(LostConditionMeet(grid)) continueGame = false;
@@ -171,5 +187,156 @@ int main(int argc, char** argv)
 
 			while(true){}
 
+			return true;
+
 		}
+}
+
+bool GameDuo()
+{
+		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
+
+		Block** gridPlayer1 = InitialiseGrid();
+		Block** gridPlayer2 = InitialiseGrid();
+		Block* piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
+		Block* piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
+		bool continueGame = true;
+		bool quit = false;
+		bool timeIsnotOverAtTheRow;
+		bool canBeMovedLowerPlayer1 = true;
+		bool canBeMovedLowerPlayer2 = true;
+		int rowsCompletedPlayer1 = 0;
+		int rowsCompletedPlayer2 = 0;
+		int contorRows = 0;
+		long timerPlayer1 = currentTimeMillis();
+		long timerPlayer2 = currentTimeMillis();
+		SDL_Event PlayerEvent;
+		int press = 0;
+
+		init();
+
+
+		while (continueGame)
+		{
+			SDL_Event event;
+		  while(continueGame&& !quit) {
+				SDL_PumpEvents();
+				drawBackground();
+				drawGrid(gridPlayer1,32,32);
+				drawGrid(gridPlayer2,608,32);
+				SDL_UpdateWindowSurface(pWindow);
+
+				if( ! canBeMovedLowerPlayer1 ) {
+					SetPiecePlaced(piecesPlayer1,gridPlayer1);
+					rowsCompletedPlayer1 = ProceedCompleteLine(piecesPlayer1,gridPlayer1);
+					CreatHoledLineInGrid(gridPlayer2,rowsCompletedPlayer1-1);
+					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
+					canBeMovedLowerPlayer1 = true;
+				}
+
+				if ( ! canBeMovedLowerPlayer2 ){
+					SetPiecePlaced(piecesPlayer2,gridPlayer2);
+					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
+					CreatHoledLineInGrid(gridPlayer1,rowsCompletedPlayer2-1);
+					piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
+					canBeMovedLowerPlayer2 = true;
+				}
+
+		    while(canBeMovedLowerPlayer1 && canBeMovedLowerPlayer2){
+						if (timerPlayer1 <= currentTimeMillis() ) {
+							timerPlayer1 = currentTimeMillis() + GetBlockSpeed(contorRows); //speed regarding completed rows
+							canBeMovedLowerPlayer1 = MovePiece(Down,piecesPlayer1,gridPlayer1);
+						}
+						if (timerPlayer2 <= currentTimeMillis() )  {
+							timerPlayer2 = currentTimeMillis() + GetBlockSpeed(contorRows);
+							canBeMovedLowerPlayer2 = MovePiece(Down,piecesPlayer2,gridPlayer2);
+						}
+
+						while ( (timerPlayer1 >= currentTimeMillis()) || (timerPlayer2 >= currentTimeMillis()) ){
+									if(kbhit()){
+										switch ((press = getch())) {
+											//P1
+											case KEY_Z : RotatePiece(piecesPlayer1,gridPlayer1);break;
+											case KEY_S : timerPlayer1 = currentTimeMillis(); break;
+											case KEY_Q : MovePiece(Left,piecesPlayer1,gridPlayer1); break;
+											case KEY_D : MovePiece(Right,piecesPlayer1,gridPlayer1); break;
+											//P2
+											case KEY_UP: RotatePiece(piecesPlayer2,gridPlayer2); break;
+											case KEY_DOWN: timerPlayer2 = currentTimeMillis(); break;
+											case KEY_LEFT: MovePiece(Left,piecesPlayer2,gridPlayer2); break;
+											case KEY_RIGHT:MovePiece(Right,piecesPlayer2,gridPlayer2); break;
+										}
+										drawGrid(gridPlayer1,32,32);
+										drawGrid(gridPlayer2,608,32);
+										PrintGrid(gridPlayer1);
+
+										SDL_UpdateWindowSurface(pWindow);
+									}
+						}
+						printf("not loop\n");
+
+						drawGrid(gridPlayer1,32,32);
+						drawGrid(gridPlayer2,608,32);
+						SDL_UpdateWindowSurface(pWindow);
+		    }
+				if (rowsCompletedPlayer1 > 0 || rowsCompletedPlayer2 >0 ) {
+					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
+					rowsCompletedPlayer1  = 0;
+					rowsCompletedPlayer2 = 0;
+					PrintGrid(gridPlayer1);
+				}
+
+
+		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
+				if( event.type == SDL_QUIT ) quit = true;
+			}
+			SDL_UpdateWindowSurface(pWindow);
+
+			// Wait 3 second after player have lost
+			long shortWaitBeforeQuit = currentTimeMillis() + 3000; // 3000 is 3 second
+			while(shortWaitBeforeQuit > currentTimeMillis() ) {}
+
+			return true;
+
+		}
+}
+
+
+void test(){
+	Block** grid = InitialiseGrid();
+  Block* pieces;
+  bool continueGame = true;
+
+  while(continueGame) {
+    pieces = InitialiseRandomPieces(grid);
+    for(int i=0;i<23;i++){
+         MovePiece(Down,pieces,grid);
+    }
+    SetPiecePlaced(pieces,grid);
+		PrintGrid(grid);
+    ProceedCompleteLine(pieces,grid);
+    if(LostConditionMeet(grid)) continueGame = false;
+		CreatHoledLineInGrid(grid,6);
+    PrintGrid(grid);
+  }
+	while (true){}
+}
+
+int main(int argc, char** argv)
+{
+	printf("Terminal Tetris Menu\n\nEnter (1) from the numerical pad for a solo game\nEnter (2) from the numerical pad for duo game\n\n");
+	int press = 0;
+	SDL_PumpEvents();
+
+	while(press == 0){
+			if(kbhit())press = getch();
+	}
+	printf("%d\n",press );
+	switch (press) {
+		case KEY_PAV_NUM_1: GameSolo(); break;
+		case KEY_PAV_NUM_2: GameDuo(); break;
+		case KEY_PAV_NUM_3 : test(); break;
+	}
+
+	while(true){}
 }
