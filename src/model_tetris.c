@@ -475,10 +475,8 @@ bool MovePiece(enum MoveType moveType,Block* piece,Block** grid){
         }
     }
     RemovePiecesFromGrid(piece,grid);
-    for(int i=0; i< BLOCKS_PER_PIECES; i++){                              // Uptdate new piece location
-        piece[i] = targetPieces[i];                                       //Update of piece
-        grid[piece[i].row][piece[i].column]= piece[i];                  //Update grid block
-    }
+    PlacePieceIntoGrid(piece,targetPieces,grid);
+
     return true;
 }
 
@@ -488,6 +486,20 @@ void RemovePiecesFromGrid(Block* piece,Block** grid){
     for(int i=0; i< BLOCKS_PER_PIECES; i++){ // Remove from the grid the previous pieces
         SetBlockType(EMPTY,piece[i].row,piece[i].column,grid);
     }
+}
+
+/* Place a piece into the grid
+ * It will add a pieces to the grid at a targetPiecesLocation */
+void PlacePieceIntoGrid(Block* piece,Block* targetPieces,Block** grid){
+  for(int i=0; i< BLOCKS_PER_PIECES; i++){                              // Uptdate new piece location
+      piece[i] = targetPieces[i];                                       //Update of piece
+      grid[piece[i].row][piece[i].column]= piece[i];                  //Update grid block
+  }
+}
+
+void ReplacePiecesIntoGrid(Block* pieceToPlace,Block* PiecesToRemove,Block** grid){
+  RemovePiecesFromGrid(PiecesToRemove,grid);
+  PlacePieceIntoGrid(pieceToPlace,grid);
 }
 
 /* Set a block with the required type
