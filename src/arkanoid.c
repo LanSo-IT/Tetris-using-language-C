@@ -52,7 +52,9 @@ void init()
 	pWindow = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 672, SDL_WINDOW_SHOWN);
 	win_surf = SDL_GetWindowSurface(pWindow);
 	//plancheSprites = SDL_LoadBMP("../bin/default_cell.bmp");
-	//BackgroundSprites = SDL_LoadBMP("../bin/wall_cell.bmp");
+	BackgroundSprites = SDL_LoadBMP("../bin/wall_cell.bmp");
+	//SDL_Surface *image;
+	//image=IMG_Load("../bin/metal-background.png");
 	BackgroundSprites = IMG_Load("../bin/metal-background.png");
 	//SDL_SetColorKey(plancheSprites, true, 0);  // 0: 00/00/00 noir -> transparent
 }
