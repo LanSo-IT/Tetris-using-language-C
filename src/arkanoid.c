@@ -97,6 +97,30 @@ void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight)
  }
 }
 
+void drawAwaitingPieces(Block** pieces,int startPixelWidth,int StartPixelHeight)
+{
+ //SDL_Rect dest = { 0,0,0,0 };
+ //int rowOffset = 4;  //  acces visible pieces starting at the index 4 of the grid
+ /*for(int row =0 ; row < VISIBLE_ROW ; row ++){
+	 	for(int column =0 ; column < COLUMN; column++){
+			switch (grid[row + rowOffset][column].type){
+					case EMPTY: BlocksSprites =  SDL_LoadBMP("../bin/basic_cell.bmp"); break;
+					case I: BlocksSprites =  SDL_LoadBMP("../bin/I_cell.bmp"); break;
+					case O: BlocksSprites =  SDL_LoadBMP("../bin/O_cell.bmp"); break;
+					case L :  BlocksSprites =  SDL_LoadBMP("../bin/L_cell.bmp"); break;
+					case J :  BlocksSprites =  SDL_LoadBMP("../bin/J_cell.bmp"); break;
+					case T :  BlocksSprites =  SDL_LoadBMP("../bin/T_cell.bmp"); break;
+					case S :  BlocksSprites =  SDL_LoadBMP("../bin/S_cell.bmp"); break;
+					case Z :  BlocksSprites =  SDL_LoadBMP("../bin/Z_cell.bmp"); break;
+				  default : BlocksSprites = SDL_LoadBMP("../bin/error_cell.bmp");
+			}
+			dest.x = startPixelWidth+column*CELL_PIXEL;
+			dest.y = StartPixelHeight+row*CELL_PIXEL;
+			SDL_BlitSurface(BlocksSprites, &srcBlock, win_surf, &dest);
+		}
+ }*/
+}
+
 long currentTimeMillis() {
   struct timeval time;
   gettimeofday(&time, NULL);

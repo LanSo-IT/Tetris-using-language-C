@@ -41,8 +41,7 @@
       EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY  23
   (x)   0     1     2     3     4     5     6     7     8     9
 
-      [!] TAKE CARE [!] it's grid[Y][X] <=> grid[row][column]
- */
+      [!] TAKE CARE [!] it's grid[Y][X] <=> grid[row][column]  */
 Block** InitialiseGrid(){
     Block** grid = (Block**)malloc(ROW*sizeof(Block*));
     for(int i=0;i<ROW;i++){
@@ -77,8 +76,7 @@ void InitialiseAllBlockEmpty(Block** grid){
  *  |  |  |  A pieces found (not center)
  *  |  |  A pieces found (not center)
  *  |  A pieces found (not center)
- * THE CENTER BLOCK
- */
+ * THE CENTER BLOCK */
 Block* InitialiseLPieces(Block** grid){
     Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
 
@@ -114,8 +112,7 @@ Block* InitialiseLPieces(Block** grid){
  *  |  |  |  A pieces found (not center)
  *  |  |  A pieces found (not center)
  *  |  A pieces found (not center)
- * THE CENTER BLOCK
- */
+ * THE CENTER BLOCK */
 Block* InitialiseJPieces(Block** grid){
     Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
 
@@ -151,8 +148,7 @@ Block* InitialiseJPieces(Block** grid){
  *  |  |  |  A pieces found (not center)
  *  |  |  A pieces found (not center)
  *  |  A pieces found (not center)
- * THE CENTER BLOCK
- */
+ * THE CENTER BLOCK */
 Block* InitialiseOPieces(Block** grid){
     Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
 
@@ -187,8 +183,7 @@ Block* InitialiseOPieces(Block** grid){
  *  |  |  |  A pieces found (not center)
  *  |  |  A pieces found (not center)
  *  |  A pieces found (not center)
- * THE CENTER BLOCK
- */
+ * THE CENTER BLOCK */
 Block* InitialiseIPieces(Block** grid){
     Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
     grid[3][5].active = true;
@@ -221,9 +216,7 @@ Block* InitialiseIPieces(Block** grid){
  *  |  |  |  A pieces found (not center)
  *  |  |  A pieces found (not center)
  *  |  A pieces found (not center)
- * THE CENTER BLOCK
- */
-
+ * THE CENTER BLOCK */
 Block* InitialiseZPieces(Block** grid){
     Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
     grid[3][4].active = true;
@@ -258,8 +251,7 @@ Block* InitialiseZPieces(Block** grid){
  *  |  |  |  A pieces found (not center)
  *  |  |  A pieces found (not center)
  *  |  A pieces found (not center)
- * THE CENTER BLOCK
- */
+ * THE CENTER BLOCK */
 Block* InitialiseSPieces(Block** grid){
     Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
 
@@ -296,8 +288,7 @@ Block* InitialiseSPieces(Block** grid){
  *  |  |  |  A pieces found (not center)
  *  |  |  A pieces found (not center)
  *  |  A pieces found (not center)
- * THE CENTER BLOCK
- */
+ * THE CENTER BLOCK   */
 Block* InitialiseTPieces(Block** grid){
     Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
 
@@ -322,8 +313,7 @@ Block* InitialiseTPieces(Block** grid){
 }
 
 /* Initialise a given pieces to the grid
- * Return a pieces pointor having provided type and in the hidden area
-*/
+ * Return a pieces pointor having provided type and in the hidden area */
 Block* InitialisePieces(enum ShapeType type,Block** grid){
   switch(type){
     case L : return InitialiseLPieces(grid);
@@ -338,8 +328,7 @@ Block* InitialisePieces(enum ShapeType type,Block** grid){
 }
 
 /* Initialise a pieces to the grid (pieces will be genreated randomly)
- * Return a pieces pointor having random type and in the hidden area
-*/
+ * Return a pieces pointor having random type and in the hidden area */
 Block* InitialiseRandomPieces(Block** grid){
   int randomValue = rand()% SHAPE_NUMBER_TYPE +1 ;  //provide random from 1 to 7
   switch(randomValue){
@@ -373,11 +362,6 @@ bool IsAlreadyPlacedBlock(Block** grid,int targetRow,int targetColumn){
 bool IsNotMovableBlock(Block** grid,int targetRow,int targetColumn){
     if( IsOutOfRange(targetRow,targetColumn) || IsAlreadyPlacedBlock(grid,targetRow,targetColumn) ) return true;
     else return false;
-}
-
-bool IsAbleToGoDown(){
-
-
 }
 
 /* Debug purpose */
@@ -417,8 +401,7 @@ void PrintGrid(Block** grid){
     printf("==========\n");
 }
 
-/*
- * To perform a rotation regarding the center of the pieces into the grid, we must perform :
+ /* To perform a rotation regarding the center of the pieces into the grid, we must perform :
  *  - TRANSLATION to a new coordinate system with the center of the pieces as the origin
  *  - ROTATION
  *  - TRANSLATION of the coordonate to the original coordinate system
@@ -431,8 +414,7 @@ void PrintGrid(Block** grid){
  * [!] PLEASE MIND: The center of rotation is set to the center of the pieces, not the origin of the grid thus we use phiX and phiY
  * Return :s
  * - False if the piece cannot be moved
- * - True otherwise (the pieces have been moved)
- */
+ * - True otherwise (the pieces have been moved) */
 bool RotatePiece(Block* piece,Block** grid){
     if (piece[0].type == O) return; // Square have not the ability to rotate, interupt function
 
@@ -473,8 +455,7 @@ bool RotatePiece(Block* piece,Block** grid){
 /* Attempt to move to one direction the piece(among MoveType). Checks of conformity are done prior to move the piece
  * Return :
  * - False if the piece cannot be moved
- * - True otherwise (the pieces have been moved)
- */
+ * - True otherwise (the pieces have been moved) */
 bool MovePiece(enum MoveType moveType,Block* piece,Block** grid){
     Block targetPieces[4];
     for(int i=0; i< BLOCKS_PER_PIECES; i++){ // Create a copy piece for testing the new location of the piece
@@ -502,13 +483,13 @@ bool MovePiece(enum MoveType moveType,Block* piece,Block** grid){
 }
 
 /* Remove from the piece from the grid .
- * It remove the blocks (remove any type) and the state (meaning usable by the player)
- */
+ * It remove the blocks (remove any type) and the state (meaning usable by the player) */
 void RemovePiecesFromGrid(Block* piece,Block** grid){
     for(int i=0; i< BLOCKS_PER_PIECES; i++){ // Remove from the grid the previous pieces
         SetBlockType(EMPTY,piece[i].row,piece[i].column,grid);
     }
 }
+
 /* Set a block with the required type
  * Block will be set as disable from the player ownership */
 void SetBlockType(enum ShapeType type,int row,int column,Block** grid){
@@ -519,8 +500,7 @@ void SetBlockType(enum ShapeType type,int row,int column,Block** grid){
 /* Check if a row in the grid is a complete, no matter player ownership
  * Return:
  *  - False if the line have a gap <=> not full
- *  - True if line have only block <=> full line
- */
+ *  - True if line have only block <=> full line */
 bool IsComleteLine(int row,Block** grid){
     for(int column=0; column< COLUMN; column++){
         if(grid[row][column].type == EMPTY) {
@@ -538,8 +518,7 @@ bool IsComleteLine(int row,Block** grid){
         |    \ |  |  /
         |     \|  | /
         |    index of rows, set at -1 if other row aren't complete
-      Number of line complete, value beetween 0 and BLOCKS_PER_PIECES
- */
+      Number of line complete, value beetween 0 and BLOCKS_PER_PIECES  */
 int* GetNumberOfRowComplete(Block* piece,Block** grid){
     int sizeList = BLOCKS_PER_PIECES+1;
     int* listCompleteRow = (int*)malloc(sizeList*sizeof(int));
@@ -587,8 +566,7 @@ int* GetNumberOfRowComplete(Block* piece,Block** grid){
       Number of line complete, value beetween 0 and BLOCKS_PER_PIECES
  * Block will be moved down where a line have been deleted
  * Function Return the number of completed row
- * [!] PLEASE MIND: piece coordinate will not be updated
- */
+ * [!] PLEASE MIND: piece coordinate will not be updated */
 int ProceedCompleteLine(Block* piece,Block** grid){
     int* specialRowsTable =  GetNumberOfRowComplete(piece,grid);//dedicated table for management of complete row
     int nbLineToDelete = specialRowsTable[0];
@@ -599,7 +577,9 @@ int ProceedCompleteLine(Block* piece,Block** grid){
     return specialRowsTable[0]; // Number of line complete, value beetween 0 and BLOCKS_PER_PIECES at the location of index 0 [Nb][..][..][..][..]
 }
 
-
+/* Function for multiplayer game only.
+ * A certain qty of rows (almost complete : with one hole somewhere) will be added to a grid.
+ * It will move up every block already placed and then add the holed line */
 void CreatHoledLineInGrid(Block** grid,int qty){
   for(int i=0 ; i< qty; i++){
       MoveAllGridBlocksUp(grid);
@@ -607,16 +587,19 @@ void CreatHoledLineInGrid(Block** grid,int qty){
   }
 }
 
+/* Set a line at an index of a grid as almost complete
+ * Using a row index, a line will fill with blocks on the entire row EXEPT for one block choosen randomly */
 void SetHoledLine(Block** grid,int row){
   int randomColumnHole = rand()% COLUMN +1 ;  //provide random from 1 to COLUMN
   for(int column = 0; column < COLUMN; column++){
       if(column != randomColumnHole) grid[row][column].type = I;               //anythipe would fit
-      else grid[row][column].type = EMPTY;               //anythipe would fit
+      else grid[row][column].type = EMPTY;
       grid[row][column].active = false;
       }
 }
 
-/* Set an entier row as empty */
+/* Remove an entier empty
+ * Blocks will be set as EMPTY type and Disable from player */
 void RemoveLine(Block** grid,int row){
     for(int column = 0; column < COLUMN; column++){
         SetBlockType(EMPTY,row,column,grid);
@@ -627,8 +610,7 @@ void RemoveLine(Block** grid,int row){
  * Block will be moved down from the index row (to the first row (<=> row at the top of the grid)
  * [!] PLEASE MIND: piece coordinate will not be updated
  * [!] PLEASE MIND: no check of line emptyness are done
- * [!] PLEASE MIND: Row index must be an empty line
- */
+ * [!] PLEASE MIND: Row index must be an empty line   */
 void MoveGridBlocksDown(Block** grid,int row){
     while (row >0){
         for(int column = 0; column < COLUMN; column++){
@@ -643,8 +625,7 @@ void MoveGridBlocksDown(Block** grid,int row){
  * Block will be moved up from the index row (to the first row (<=> row at the top of the grid)
  * [!] PLEASE MIND: piece coordinate will not be updated
  * [!] PLEASE MIND: no checks of line are done
- * [!] PLEASE MIND: Row index must be a empty line
- */
+ * [!] PLEASE MIND: Row index must be a empty line   */
 void MoveAllGridBlocksUp(Block** grid){
     int row = 0;
     while (row <ROW -1){
@@ -657,11 +638,11 @@ void MoveAllGridBlocksUp(Block** grid){
 }
 
 /* Set the status of the pieces to false
- * Piece status aspect (piece active) is set to false
- */
+ * Piece status aspect (piece active) is set to false */
 void SetPiecePlaced(Block* piece,Block** grid){
     for(int i=0 ; i< BLOCKS_PER_PIECES; i++) grid[piece[i].row][piece[i].column].active = false;
 }
+
 /* Check if a piece is present (not EMPTY) and not active(not usable by the player anymore) inside the row no 3
  * The hidden area is consider as the forbidden area, thus player have the lost the game
  * Return :
@@ -678,8 +659,7 @@ void SetPiecePlaced(Block* piece,Block** grid){
  *(j)   0     1     2     3     4     5     6     7     8     9
  *
  *    [!] TAKE CARE [!] Only row 3 will be check because a piece placed in the hidden area have at least one block inside that row
- *
- */
+ *   */
 bool LostConditionMeet(Block** grid){
     for(int iColumn=0; iColumn < COLUMN; iColumn++){
         if( (grid[3][iColumn].active == false) && (grid[3][iColumn].type != EMPTY) ) return true;
@@ -690,10 +670,10 @@ bool LostConditionMeet(Block** grid){
 /* Function return the speed of the piece (block per milis <=> 1000 is equivalent to 1s)
  * One level is pass each 5 rows completed (try 10 maybe)
  * The speed link to the level use an existing graph. Documentation is availbale into the folder doc
- *    [!] TAKE CARE [!] Input MUST BE the TOTAL amount of row achieve by the player
- */
+ *    [!] TAKE CARE [!] Input MUST BE the TOTAL amount of row achieve by the player   */
 long GetBlockSpeed(int rowCompleted){
-  int level = rowCompleted/5; //
+  int NumberRowBetweenEachLevel = 5;
+  int level = rowCompleted/NumberRowBetweenEachLevel; // Euclidian division
   switch (level){
     case 0 : return 798; break;
     case 1 : return 715; break;
@@ -730,8 +710,6 @@ long GetBlockSpeed(int rowCompleted){
       return 1;
     }
 }
-
-
 
 int demo(){
 
