@@ -16,9 +16,9 @@ bool LostConditionMeet(Block** grid);
 long GetBlockSpeed(int rowCompleted);
 
 void CreatHoledLineInGrid(Block** grid,int qty);
-void ReplacePiecesIntoGrid(Block* pieceToPlace,Block* PiecesToRemove,Block** grid);
 
 void PrintGrid(Block** grid); //debug purpose
-Block* InitialisePieces(enum ShapeType type,Block** grid);
 
+Block* InitialisePieces(enum ShapeType type,Block** grid);
+Block* ManagePlayerPiecesSwitch(enum ShapeType* storedPiecesType,Block* piece,Block** grid);
 #endif // MODEL_TETRIS_H

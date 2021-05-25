@@ -312,6 +312,28 @@ Block* InitialiseTPieces(Block** grid){
     return pieces;
 }
 
+/* Create an empty pieces
+ * Piece must bu use only for help to manage pieces player storage
+ * Return a ptr of the pieces for an easier management of the piece
+ * Grid is not updated with empty pieces
+ * [0][1][2][3]
+ *  |  |  |  |
+ *  |  |  |  EMPTY, Active, (0,0)
+ *  |  |  EMPTY, Active, (0,0)
+ *  |  EMPTY, Active, (0,0)
+ * EMPTY, Active, (0,0)   */
+Block* InitialiseEmptyPieces(){
+    Block* pieces = (Block*)malloc(BLOCKS_PER_PIECES*sizeof(Block));
+    for(int i=0 ; i< BLOCKS_PER_PIECES; i++){
+      pieces[i].active = true;
+      pieces[i].center = true;
+      pieces[i].type = EMPTY;
+      pieces[i].row = 0;
+      pieces[i].column = 0;
+    }
+    return pieces;
+}
+
 /* Initialise a given pieces to the grid
  * Return a pieces pointor having provided type and in the hidden area */
 Block* InitialisePieces(enum ShapeType type,Block** grid){
@@ -323,24 +345,33 @@ Block* InitialisePieces(enum ShapeType type,Block** grid){
     case Z : return InitialiseZPieces(grid);
     case I : return InitialiseIPieces(grid);
     case O : return InitialiseOPieces(grid);
+    case EMPTY: return InitialiseEmptyPieces(); // for pieces storage location, no associated with grid
     default : printf("ERROR : enum not in range [L,J,T,S,Z,I,O]");
+  }
+}
+
+/* Provide a random type
+ * Function for get a random type among the SHAPE_NUMBER_TYPE */
+enum ShapeType GetRandomType(){
+  enum ShapeType type;
+  int randomValue = rand()% SHAPE_NUMBER_TYPE +1 ; //provide random from 1 to SHAPE_NUMBER_TYPE
+  switch(randomValue){
+    case 1 : return type = L;
+    case 2 : return type = J;
+    case 3 : return type = T;
+    case 4 : return type = S;
+    case 5 : return type = Z;
+    case 6 : return type = I;
+    case 7 : return type = O;
+    default : printf("ERROR : random value not in range [L,J,T,S,Z,I,O]");
   }
 }
 
 /* Initialise a pieces to the grid (pieces will be genreated randomly)
  * Return a pieces pointor having random type and in the hidden area */
 Block* InitialiseRandomPieces(Block** grid){
-  int randomValue = rand()% SHAPE_NUMBER_TYPE +1 ;  //provide random from 1 to 7
-  switch(randomValue){
-    case L : return InitialiseLPieces(grid);
-    case J : return InitialiseJPieces(grid);
-    case T : return InitialiseTPieces(grid);
-    case S : return InitialiseSPieces(grid);
-    case Z : return InitialiseZPieces(grid);
-    case I : return InitialiseIPieces(grid);
-    case O : return InitialiseOPieces(grid);
-    default : printf("ERROR : enum not in range [L,J,T,S,Z,I,O]");
-  }
+  enum ShapeType type = GetRandomType() ;
+  return InitialisePieces(type,grid);
 }
 
 bool IsOutOfColumnRange(int targetColumn){
@@ -489,17 +520,12 @@ void RemovePiecesFromGrid(Block* piece,Block** grid){
 }
 
 /* Place a piece into the grid
- * It will add a pieces to the grid at a targetPiecesLocation */
+ * It will add a pieces to the grid at a targetPieces Location */
 void PlacePieceIntoGrid(Block* piece,Block* targetPieces,Block** grid){
   for(int i=0; i< BLOCKS_PER_PIECES; i++){                              // Uptdate new piece location
       piece[i] = targetPieces[i];                                       //Update of piece
       grid[piece[i].row][piece[i].column]= piece[i];                  //Update grid block
   }
-}
-
-void ReplacePiecesIntoGrid(Block* pieceToPlace,Block* PiecesToRemove,Block** grid){
-  RemovePiecesFromGrid(PiecesToRemove,grid);
-  PlacePieceIntoGrid(pieceToPlace,grid);
 }
 
 /* Set a block with the required type
@@ -653,6 +679,35 @@ void MoveAllGridBlocksUp(Block** grid){
  * Piece status aspect (piece active) is set to false */
 void SetPiecePlaced(Block* piece,Block** grid){
     for(int i=0 ; i< BLOCKS_PER_PIECES; i++) grid[piece[i].row][piece[i].column].active = false;
+}
+
+/* Function allowing a management of the stocked pieces
+ * Because a piece is alway on the grid only two case can occur :
+ *   - a pieces is on the grid AND stock is empty
+ *       => store and instanciate a new piece randomly
+ *   - a pieces is on the grid AND stock is full ( i.e. on piece is stored)
+ *       => switch the stored piece and instantiate starting from the hidden area previous stored pieces   */
+Block* ManagePlayerPiecesSwitch(enum ShapeType* storedPiecesType,Block* piece,Block** grid){
+  if ((*storedPiecesType == EMPTY)){
+      *storedPiecesType = piece[0].type;
+      printf("(if)Type stored is %d\n",*storedPiecesType);
+      RemovePiecesFromGrid(piece,grid);
+      piece = InitialiseRandomPieces(grid);
+      printf("(if)Type created is %d\n",piece[0].type);
+      return piece;
+  }
+  else {
+    printf("(else)Type stored input is %d\n",*storedPiecesType);
+    printf("(else)Type created input is %d\n",piece[0].type);
+      enum ShapeType typeToInstantiate;
+      typeToInstantiate = *storedPiecesType;
+      *storedPiecesType = piece[0].type;
+      RemovePiecesFromGrid(piece,grid);
+      piece = InitialisePieces(typeToInstantiate,grid);
+      printf("(else)Type stored is %d\n",*storedPiecesType);
+      printf("(else)Type created is %d\n",piece[0].type);
+      return piece;
+  }
 }
 
 /* Check if a piece is present (not EMPTY) and not active(not usable by the player anymore) inside the row no 3

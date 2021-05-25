@@ -14,6 +14,7 @@
 #define VISIBLE_ROW 20  // [ !!! ]  lines but there is 4 hidden row at the top of the grid => meaning 24 ROW
 #define COLUMN 10
 
+#define KEY_PAV_NUM_0 48
 #define KEY_PAV_NUM_1 49
 #define KEY_PAV_NUM_2 50
 #define KEY_PAV_NUM_3 51
@@ -97,30 +98,6 @@ void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight)
  }
 }
 
-void drawAwaitingPieces(Block** pieces,int startPixelWidth,int StartPixelHeight)
-{
- //SDL_Rect dest = { 0,0,0,0 };
- //int rowOffset = 4;  //  acces visible pieces starting at the index 4 of the grid
- /*for(int row =0 ; row < VISIBLE_ROW ; row ++){
-	 	for(int column =0 ; column < COLUMN; column++){
-			switch (grid[row + rowOffset][column].type){
-					case EMPTY: BlocksSprites =  SDL_LoadBMP("../bin/basic_cell.bmp"); break;
-					case I: BlocksSprites =  SDL_LoadBMP("../bin/I_cell.bmp"); break;
-					case O: BlocksSprites =  SDL_LoadBMP("../bin/O_cell.bmp"); break;
-					case L :  BlocksSprites =  SDL_LoadBMP("../bin/L_cell.bmp"); break;
-					case J :  BlocksSprites =  SDL_LoadBMP("../bin/J_cell.bmp"); break;
-					case T :  BlocksSprites =  SDL_LoadBMP("../bin/T_cell.bmp"); break;
-					case S :  BlocksSprites =  SDL_LoadBMP("../bin/S_cell.bmp"); break;
-					case Z :  BlocksSprites =  SDL_LoadBMP("../bin/Z_cell.bmp"); break;
-				  default : BlocksSprites = SDL_LoadBMP("../bin/error_cell.bmp");
-			}
-			dest.x = startPixelWidth+column*CELL_PIXEL;
-			dest.y = StartPixelHeight+row*CELL_PIXEL;
-			SDL_BlitSurface(BlocksSprites, &srcBlock, win_surf, &dest);
-		}
- }*/
-}
-
 long currentTimeMillis() {
   struct timeval time;
   gettimeofday(&time, NULL);
@@ -136,16 +113,20 @@ long GetNextTimeOver(int contorRows){
 
 bool GameSolo()
 {
-		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
+	if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
 
 		Block** grid = InitialiseGrid();
 		Block* pieces;
+		enum ShapeType* storedPiece;
+		enum ShapeType testInit = EMPTY;
+		storedPiece = &testInit;
 		bool continueGame = true;
 		bool quit = false;
 		bool timeIsnotOverAtTheRow;
 		bool canBeMovedLower = true;
 		int rowsCompleted = 0;
 		int contorRows = 0;
+		bool canBeSwitch = true;
 		long timeBeforeMoveToNextRow;
 		SDL_Event PlayerEvent;
 		int press = 0;
@@ -164,13 +145,19 @@ bool GameSolo()
 				canBeMovedLower = true;
 		    while(canBeMovedLower){
 						timeBeforeMoveToNextRow = currentTimeMillis() + GetBlockSpeed(contorRows) ; //speed regarding completed rows
-					while ( timeBeforeMoveToNextRow > currentTimeMillis() ){
+						while ( timeBeforeMoveToNextRow > currentTimeMillis() ){
 									if(kbhit()){
 										switch ((press = getch())) {
 											case KEY_UP: RotatePiece(pieces,grid); break;
 											case KEY_DOWN: timeBeforeMoveToNextRow = currentTimeMillis(); break;
 											case KEY_LEFT: MovePiece(Left,pieces,grid); break;
 											case KEY_RIGHT:MovePiece(Right,pieces,grid); break;
+											case KEY_PAV_NUM_0 : printf("zero !\n" );
+												if( canBeSwitch) {
+													pieces = ManagePlayerPiecesSwitch(storedPiece,pieces,grid);
+													canBeSwitch = false;
+												}
+												break;
 										}
 										drawGrid(grid,352,32);
 										PrintGrid(grid);
@@ -182,10 +169,10 @@ bool GameSolo()
 						SDL_UpdateWindowSurface(pWindow);
 		    }
 		    SetPiecePlaced(pieces,grid);
+				canBeSwitch = true;
 		    rowsCompleted = ProceedCompleteLine(pieces,grid);
 				if (rowsCompleted > 0) {
 					contorRows =+ rowsCompleted ;
-					printf("Row done :%d\n",rowsCompleted);
 					PrintGrid(grid);
 				}
 		    if(LostConditionMeet(grid)) continueGame = false;
@@ -194,9 +181,6 @@ bool GameSolo()
 			SDL_UpdateWindowSurface(pWindow);
 
 			while(true){}
-
-			return true;
-
 		}
 }
 
@@ -299,9 +283,7 @@ bool GameDuo()
 		}
 }
 
-
 void test(){
-	while (true){}
 }
 
 int main(int argc, char** argv)
