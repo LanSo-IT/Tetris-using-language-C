@@ -12,7 +12,7 @@
 #define COLUMN 10
 #define SHAPE_NUMBER_TYPE 7 // The 7 shape, the empty is not count
 
-/* Initialise grid 24x10, 4 first row will be hidden : it's the spawning area
+/* Initialise grid ROW(24)xCOLUMN(10), 4 first row will be hidden : it's the spawning area
                                                                   (y)
       EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY  0
       EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY  1
@@ -48,10 +48,21 @@ Block** InitialiseGrid(){
         grid[i]= (Block*)malloc(COLUMN*sizeof(Block));
     }
     InitialiseAllBlockEmpty(grid);
-
     return grid;
 }
 
+/* Initialise a copy  of an existing grid with a size ROW(24)xCOLUMN(10) */
+Block** InitialiseCopyGrid(Block** gridOrigin){
+    Block** grid = (Block**)malloc(ROW*sizeof(Block*));
+    for(int i=0;i<ROW;i++){
+        grid[i]= (Block*)malloc(COLUMN*sizeof(Block));
+    }
+    InitialiseWithCopy(gridOrigin,grid);
+    return grid;
+}
+
+/*
+*/
 void InitialiseAllBlockEmpty(Block** grid){
     for(int row = 0 ; row<ROW; row++){
         for(int column = 0; column< COLUMN; column++){
@@ -60,6 +71,18 @@ void InitialiseAllBlockEmpty(Block** grid){
             grid[row][column].active = false;
             grid[row][column].center = false;
             grid[row][column].type = EMPTY;
+        }
+    }
+}
+
+void InitialiseWithCopy(Block** gridOrigin, Block** gridToCopy){
+    for(int row = 0 ; row<ROW; row++){
+        for(int column = 0; column< COLUMN; column++){
+            gridToCopy[row][column].row = gridOrigin[row][column].row;
+            gridToCopy[row][column].column = gridOrigin[row][column].column;
+            gridToCopy[row][column].active = gridOrigin[row][column].active;
+            gridToCopy[row][column].center = gridOrigin[row][column].center;
+            gridToCopy[row][column].type =   gridOrigin[row][column].type;
         }
     }
 }

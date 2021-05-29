@@ -5,9 +5,9 @@
 #include <windows.h>
 #include <conio.h>
 #include <time.h>
-#include <SDL_image.h>
 
 #include "model_tetris.h"
+#include "ia_tetris.h"
 
 #define CELL_PIXEL 32
 
@@ -51,10 +51,7 @@ void init()
 	win_surf = SDL_GetWindowSurface(pWindow);
 	//plancheSprites = SDL_LoadBMP("../bin/default_cell.bmp");
 	BackgroundSprites = SDL_LoadBMP("../bin/wall_cell.bmp");
-	//SDL_Surface *image;
-	//image=IMG_Load("../bin/metal-background.png");
-	BackgroundSprites = IMG_Load("../bin/metal-background.png");
-	//SDL_SetColorKey(plancheSprites, true, 0);  // 0: 00/00/00 noir -> transparent
+	SDL_SetColorKey(plancheSprites, true, 0);  // 0: 00/00/00 noir -> transparent
 }
 
 void drawBackground()
@@ -68,8 +65,6 @@ void drawBackground()
 			dest.y = j;
 			SDL_BlitSurface(BackgroundSprites, &srcBlock, win_surf, &dest);
 		}
-
-	SDL_FreeSurface(BackgroundSprites);
 }
 
 /* Function that draw a grid of blocks
@@ -284,6 +279,7 @@ bool GameDuo()
 }
 
 void test(){
+	TestIA();
 }
 
 int main(int argc, char** argv)
