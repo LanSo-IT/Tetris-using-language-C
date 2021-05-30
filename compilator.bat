@@ -2,4 +2,4 @@
 @ECHO OFF
 TITLE Comiplator
 :tryToCompile
-gcc src/arkanoid.c src/model_tetris.c -o bin/Tetris -I include -L lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image || pause && CLS && GOTO tryToCompile
+gcc src/arkanoid.c src/model_tetris.c src/ia_tetris.c -o bin/Tetris -I include -L lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image || pause && CLS && GOTO tryToCompile
