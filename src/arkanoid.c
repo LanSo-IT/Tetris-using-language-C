@@ -11,7 +11,7 @@
 
 #define CELL_PIXEL 32
 
-#define VISIBLE_ROW 20  // [ !!! ]  lines but there is 4 hidden row at the top of the grid => meaning 24 ROW
+#define VISIBLE_ROW 20  // [ !!! ]  only visible lines because there is 4 hidden row at the top of the grid => meaning a total of 24 ROW
 #define COLUMN 10
 
 #define KEY_PAV_NUM_0 48
@@ -131,7 +131,7 @@ bool GameSolo()
 		while (continueGame)
 		{
 			SDL_Event event;
-		  while(continueGame&& !quit) {
+		  while(continueGame && !quit) {
 				SDL_PumpEvents();
 				drawBackground();
 				drawGrid(grid,352,32);
@@ -144,7 +144,7 @@ bool GameSolo()
 									if(kbhit()){
 										switch ((press = getch())) {
 											case KEY_UP: RotatePiece(pieces,grid); break;
-											case KEY_DOWN: timeBeforeMoveToNextRow = currentTimeMillis(); break;
+											case KEY_DOWN: timeBeforeMoveToNextRow = currentTimeMillis(); break; // speed up pieces
 											case KEY_LEFT: MovePiece(Left,pieces,grid); break;
 											case KEY_RIGHT:MovePiece(Right,pieces,grid); break;
 											case KEY_PAV_NUM_0 : printf("zero !\n" );
@@ -168,6 +168,7 @@ bool GameSolo()
 		    rowsCompleted = ProceedCompleteLine(pieces,grid);
 				if (rowsCompleted > 0) {
 					contorRows =+ rowsCompleted ;
+					rowsCompleted = 0;
 					PrintGrid(grid);
 				}
 		    if(LostConditionMeet(grid)) continueGame = false;
@@ -291,6 +292,7 @@ bool GameIA()
 		bool timeIsnotOverAtTheRow;
 		bool canBeMovedLowerPlayer1 = true;
 		bool canBeMovedLowerPlayer2 = true;
+		bool IAMustFindTheLocation = true;
 		int rowsCompletedPlayer1 = 0;
 		int rowsCompletedPlayer2 = 0;
 		int contorRows = 0;
@@ -324,6 +326,7 @@ bool GameIA()
 					CreatHoledLineInGrid(gridPlayer1,rowsCompletedPlayer2-1);
 					piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
 					canBeMovedLowerPlayer2 = true;
+					IAMustFindTheLocation = true;
 				}
 
 		    while(canBeMovedLowerPlayer1 && canBeMovedLowerPlayer2){
@@ -332,10 +335,9 @@ bool GameIA()
 							canBeMovedLowerPlayer1 = MovePiece(Down,piecesPlayer1,gridPlayer1);
 						}
 						if (timerPlayer2 <= currentTimeMillis() )  {
-							timerPlayer2 = currentTimeMillis() + GetBlockSpeed(contorRows);
+							timerPlayer2 = currentTimeMillis() + GetBlockSpeedForIA(contorRows);
 							canBeMovedLowerPlayer2 = MovePiece(Down,piecesPlayer2,gridPlayer2);
 						}
-						bool IAMustFindTheLocation = true;
 						while ( (timerPlayer1 > currentTimeMillis()) && (timerPlayer2 > currentTimeMillis()) ){
 									if(kbhit()){
 										switch ((press = getch())) {
@@ -344,18 +346,21 @@ bool GameIA()
 											case KEY_DOWN : timerPlayer1 = currentTimeMillis(); break;
 											case KEY_LEFT : MovePiece(Left,piecesPlayer1,gridPlayer1); break;
 											case KEY_RIGHT : MovePiece(Right,piecesPlayer1,gridPlayer1); break;
-											// P2 is IA : not any move needed
-										}
-										// P2 Move
-										if(IAMustFindTheLocation){
-											IATable* bestMove = FindBestMove(piecesPlayer2,gridPlayer2);
-										  ExecuteIAMove(bestMove,piecesPlayer2,gridPlayer2);
-											IAMustFindTheLocation = false;
+											// P2 is IA
 										}
 										drawGrid(gridPlayer1,32,32);
 										drawGrid(gridPlayer2,608,32);
 										SDL_UpdateWindowSurface(pWindow);
 									}
+
+						}
+						// P2 Move
+						if(IAMustFindTheLocation){
+							IATable* bestMove = FindBestMove(piecesPlayer2,gridPlayer2);
+							printf("Best table :");
+							PrintIATAble(bestMove);
+							ExecuteIAMove(bestMove,piecesPlayer2,gridPlayer2);
+							IAMustFindTheLocation = false;
 						}
 						drawGrid(gridPlayer1,32,32);
 						drawGrid(gridPlayer2,608,32);
@@ -397,6 +402,7 @@ int main(int argc, char** argv)
 		case KEY_PAV_NUM_1: GameSolo(); break;
 		case KEY_PAV_NUM_2: GameDuo(); break;
 		case KEY_PAV_NUM_3 : GameIA(); break;
+		case 52 : test(); break;
 	}
 
 	while(true){}

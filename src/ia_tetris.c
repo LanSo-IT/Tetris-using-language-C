@@ -9,9 +9,17 @@
 #define COLUMN 10
 #define SHAPE_NUMBER_TYPE 7 // The 7 shape, the empty is not count
 
-/*
-THE IA MECANISM ARE INSPIRED BY THE GREAT WEB ARTICLE : "Tetris AI – The (Near) Perfect Bot",Yiyuan Lee , April 14 2013
-https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-player/
+// VERY IMPORTANT VALUE
+// The 4 coeficients below allow to set the IA capacity regarding how to placce a piecce
+#define AGREGATION_COEF -1       // default is : -1
+#define COMPLETE_LINE_COEF 10     // default is : 10
+#define HOLE_COEF -10             // default is : -10
+#define BUMPINESS_COEF -1        // default is : -1
+
+/* RESOURCE USED :
+THE IA MECANISM ARE INSPIRED BY THE GREAT WEB ARTICLE :
+= > "Tetris AI – The (Near) Perfect Bot",Yiyuan Lee , April 14 2013
+Link : https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-player/
 */
 
 /* Return a ptr of a special storage data.
@@ -25,7 +33,7 @@ https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-player/
 IATable* InitialiseIATable(enum MoveType moveType,int qtyMove,int qtyRotation){
   IATable* tableIA = (IATable*)malloc(1*sizeof(IATable));
   // init Score
-  tableIA->score = 9999;
+  tableIA->score = -9999;
   // init qty move regading move type
   switch(moveType){
     case Left : tableIA->qtyMoveLeft = qtyMove;
@@ -45,8 +53,16 @@ IATable* InitialiseIATable(enum MoveType moveType,int qtyMove,int qtyRotation){
 // Debug purpose
 void PrintIATAble(IATable* input){
   printf("[%d][%d][%d][%d]\n",input->score,input->rotation,input->qtyMoveLeft,input->qtyMoveRight);
+  printf("  |  |  |  |\n");
+  printf("  |  |  |  qty Right\n");
+  printf("  |  | qty Left\n");
+  printf("  | qty Rotation\n");
+  printf(" score\n");
 }
 
+/* Aim to provide a dedicated IA Table regarding a provided data.
+ * The funciton will simulate a placement for a grid with the target pieces and the movement to provide
+ * Movement to provide are the move type (left or right) plus the numbers of rotation */
 IATable* GetIATable(Block* piece,Block** grid,enum MoveType moveType,int qtyMove,int qtyRotation){
   IATable* resultIATable = InitialiseIATable(moveType,qtyMove,qtyRotation);
   Block** gridCopy = InitialiseCopyGrid(grid);
@@ -63,7 +79,7 @@ IATable* GetIATable(Block* piece,Block** grid,enum MoveType moveType,int qtyMove
   MovePieceIA(moveType,qtyMove,pieceCopy,gridCopy);
   MoveDownPieceIA(pieceCopy,gridCopy);
 
-  resultIATable->score = (1)*GetAgregateScore(gridCopy) + (1)*GetCompleteLineScore(pieceCopy,gridCopy) + (1)*GetHolesScore(gridCopy) + (1)*GetBumpinessScore(gridCopy);
+  resultIATable->score = AGREGATION_COEF*GetAgregateScore(gridCopy) + COMPLETE_LINE_COEF*GetCompleteLineScore(pieceCopy,gridCopy) + HOLE_COEF*GetHolesScore(gridCopy) + BUMPINESS_COEF*GetBumpinessScore(gridCopy);
   free(gridCopy);  // WARNING : CREATE HAZARDOUS BUG OCCURENCE ON THE EXE : QUIT PROG SOMETIME
 
   return resultIATable;
@@ -122,8 +138,11 @@ int GetHolesScore(Block** grid){
  * [ ]     [ ] [ ] [ ]     */
 int GetBumpinessScore(Block** grid){
   int result=0;
-  for(int column = 0 ; column < (COLUMN-1) ; column++){
-    result+=abs(GetColumnHeight(column,grid) - GetColumnHeight(column+1,grid));
+  for(int column = 0 ; column < COLUMN ; column++){
+    // if: at the last column, cannot go out of bound
+    if(column == COLUMN) result+=abs(GetColumnHeight(column,grid) - GetColumnHeight(column-1,grid));
+    //else: it's the standard case
+    else result+=abs(GetColumnHeight(column,grid) - GetColumnHeight(column+1,grid));
   }
   return result;
 }
@@ -161,36 +180,33 @@ void ExecuteIAMove(IATable* iaTable,Block* piece,Block** grid){
 }
 
 /* Test all possible move and return the iaTable with the best score
- * Possibility are test for the 4 rotations of the pieces and at every position of the column   */
+ * Possibility are test for the 4 rotations of the pieces and at every position of the grid column   */
 IATable* FindBestMove(Block* piece,Block** grid){
   IATable* iaTable = InitialiseIATable(Left,0,0);
   IATable* tmp;
   for(int rotation = 0; rotation < 4; rotation++){
     for(int moveLeft=0; moveLeft < COLUMN/2; moveLeft++){
       tmp = GetIATable(piece,grid,Left,moveLeft,rotation);
-      if (tmp->score < iaTable->score) iaTable = tmp;
+      if (tmp->score > iaTable->score) iaTable = tmp;
     }
     for(int moveRight=0; moveRight < COLUMN/2; moveRight++){
       tmp = GetIATable(piece,grid,Right,moveRight,rotation);
-      if (tmp->score < iaTable->score) iaTable = tmp;
+      if (tmp->score > iaTable->score) iaTable = tmp;
     }
   }
+  free(tmp);
   return iaTable;
 }
 
+/* Debug purpose */
 void TestIA(){
   Block** grid = InitialiseGrid();
   Block* pieces;
-  PrintGrid(grid);
-  pieces = InitialiseRandomPieces(grid);
-  for(int i=0;i<23;i++){
-       MovePiece(Down,pieces,grid);
-  }
-  SetPiecePlaced(pieces,grid);
-  ProceedCompleteLine(pieces,grid);
-
   pieces = InitialisePieces(I,grid);
   IATable* bestMove = FindBestMove(pieces,grid);
   ExecuteIAMove(bestMove,pieces,grid);
+  SetPiecePlaced(pieces,grid);
+  ProceedCompleteLine(pieces,grid);
+  PrintGrid(grid);
   free(bestMove);
 }

@@ -774,13 +774,13 @@ long GetBlockSpeed(int rowCompleted){
     case 6 : return 299; break;
     case 7 : return 216; break;
     case 8 : return 133; break;
-    case 9 : return 998; break;
+    case 9 : return 133; break;
     case 10 : return 83; break;
     case 11 : return 83; break;
     case 12 : return 83; break;
-    case 13 : return 665; break;
-    case 14 : return 665; break;
-    case 15 : return 665; break;
+    case 13 : return 83; break;
+    case 14 : return 83; break;
+    case 15 : return 83; break;
     case 16 : return 49; break;
     case 17 : return 49; break;
     case 18 : return 49; break;
@@ -794,7 +794,51 @@ long GetBlockSpeed(int rowCompleted){
     case 26 : return 33; break;
     case 27 : return 33; break;
     case 28 : return 33; break;
-    case 29 : return 166; break;
+    case 29 : return 33; break;
+    default :
+      printf("[WARNNING]: Lvl cannot be used ");
+      return 1;
+    }
+}
+
+/* Function return the speed of the piece (block per milis <=> 1000 is equivalent to 1s)
+ * One level is pass each 5 rows completed (try 10 maybe)
+ * The speed link to the level use an existing graph. Documentation is availbale into the folder doc
+ *    [!] TAKE CARE [!] Input MUST BE the TOTAL amount of row achieve by the player   */
+long GetBlockSpeedForIA(int rowCompleted){
+  int NumberRowBetweenEachLevel = 5;
+  int level = rowCompleted/NumberRowBetweenEachLevel; // Euclidian division
+  switch (level){
+    case 0 : return 216; break;
+    case 1 : return 216; break;
+    case 2 : return 200; break;
+    case 3 : return 200; break;
+    case 4 : return 190; break;
+    case 5 : return 190; break;
+    case 6 : return 180; break;
+    case 7 : return 150; break;
+    case 8 : return 133; break;
+    case 9 : return 133; break;
+    case 10 : return 133; break;
+    case 11 : return 83; break;
+    case 12 : return 83; break;
+    case 13 : return 83; break;
+    case 14 : return 83; break;
+    case 15 : return 83; break;
+    case 16 : return 49; break;
+    case 17 : return 49; break;
+    case 18 : return 49; break;
+    case 19 : return 33; break;
+    case 20 : return 33; break;
+    case 21 : return 33; break;
+    case 22 : return 33; break;
+    case 23 : return 33; break;
+    case 24 : return 33; break;
+    case 25 : return 33; break;
+    case 26 : return 33; break;
+    case 27 : return 33; break;
+    case 28 : return 33; break;
+    case 29 : return 33; break;
     default :
       printf("[WARNNING]: Lvl cannot be used ");
       return 1;
