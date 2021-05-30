@@ -63,15 +63,11 @@ IATable* GetIATable(Block* piece,Block** grid,enum MoveType moveType,int qtyMove
   MovePieceIA(moveType,qtyMove,pieceCopy,gridCopy);
   MoveDownPieceIA(pieceCopy,gridCopy);
 
-  resultIATable->score = GetAgregateScore(gridCopy) + GetCompleteLineScore(pieceCopy,gridCopy) + GetHolesScore(gridCopy) + GetBumpinessScore(gridCopy);
-  PrintGrid(gridCopy);
-
+  resultIATable->score = (1)*GetAgregateScore(gridCopy) + (1)*GetCompleteLineScore(pieceCopy,gridCopy) + (1)*GetHolesScore(gridCopy) + (1)*GetBumpinessScore(gridCopy);
   free(gridCopy);  // WARNING : CREATE HAZARDOUS BUG OCCURENCE ON THE EXE : QUIT PROG SOMETIME
-
 
   return resultIATable;
 }
-
 
 /* Function to provide a sum regarding heights of grid blocks
  *
@@ -132,22 +128,22 @@ int GetBumpinessScore(Block** grid){
   return result;
 }
 
-/* */
+/* Move a piece in one direction as many time as requested in input */
 void MovePieceIA(enum MoveType moveType,int qtyMove,Block* piece,Block** grid){
   for(int i=0; i< qtyMove;i++) MovePiece(moveType,piece,grid);
 }
 
-/* */
+/* Rotate a piece as many time as requested in input */
 void RotatePieceIA(int qtyRotation,Block* piece,Block** grid){
   for(int iRotation = 0; iRotation < qtyRotation; iRotation++) RotatePiece(piece,grid);
 }
 
-/* */
+/* Move a piece until the bottom of the grid is reach*/
 void MoveDownPieceIA(Block* piece,Block** grid){
   while(MovePiece(Down,piece,grid)){}
 }
 
-/* */
+/* Return the height of the block regarding a column index*/
 int GetColumnHeight(int column,Block** grid){
   int result=0;
   for(int row = ROW -1; row >0 ; row--){ //REMINDER : top of the grid with index 0, botom of the grid with index ROW -1,
@@ -156,44 +152,35 @@ int GetColumnHeight(int column,Block** grid){
   return result;
 }
 
-/* */
+/* Move a pieces into the grid regarding the iaTable pattern */
 void ExecuteIAMove(IATable* iaTable,Block* piece,Block** grid){
   RotatePieceIA(iaTable->rotation,piece,grid);
   MovePieceIA(Left,iaTable->qtyMoveLeft,piece,grid);
   MovePieceIA(Right,iaTable->qtyMoveRight,piece,grid);
-  MoveDownPieceIA(piece,grid);
+  //MoveDownPieceIA(piece,grid);
 }
 
-/* */
+/* Test all possible move and return the iaTable with the best score
+ * Possibility are test for the 4 rotations of the pieces and at every position of the column   */
 IATable* FindBestMove(Block* piece,Block** grid){
   IATable* iaTable = InitialiseIATable(Left,0,0);
   IATable* tmp;
   for(int rotation = 0; rotation < 4; rotation++){
     for(int moveLeft=0; moveLeft < COLUMN/2; moveLeft++){
       tmp = GetIATable(piece,grid,Left,moveLeft,rotation);
-      printf("tmp :\t");
-      PrintIATAble(tmp);
       if (tmp->score < iaTable->score) iaTable = tmp;
-      printf("iaTable :\t");
-      PrintIATAble(iaTable);
     }
     for(int moveRight=0; moveRight < COLUMN/2; moveRight++){
       tmp = GetIATable(piece,grid,Right,moveRight,rotation);
-      printf("tmp :\t");
-      PrintIATAble(tmp);
       if (tmp->score < iaTable->score) iaTable = tmp;
-      printf("iaTable :\t");
-      PrintIATAble(iaTable);
     }
   }
-
   return iaTable;
 }
 
 void TestIA(){
   Block** grid = InitialiseGrid();
   Block* pieces;
-
   PrintGrid(grid);
   pieces = InitialiseRandomPieces(grid);
   for(int i=0;i<23;i++){
@@ -203,12 +190,7 @@ void TestIA(){
   ProceedCompleteLine(pieces,grid);
 
   pieces = InitialisePieces(I,grid);
-
   IATable* bestMove = FindBestMove(pieces,grid);
-  PrintIATAble(bestMove);
-
   ExecuteIAMove(bestMove,pieces,grid);
-  PrintGrid(grid);
   free(bestMove);
-
 }

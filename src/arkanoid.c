@@ -278,13 +278,114 @@ bool GameDuo()
 		}
 }
 
+bool GameIA()
+{
+		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
+
+		Block** gridPlayer1 = InitialiseGrid();
+		Block** gridPlayer2 = InitialiseGrid();
+		Block* piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
+		Block* piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
+		bool continueGame = true;
+		bool quit = false;
+		bool timeIsnotOverAtTheRow;
+		bool canBeMovedLowerPlayer1 = true;
+		bool canBeMovedLowerPlayer2 = true;
+		int rowsCompletedPlayer1 = 0;
+		int rowsCompletedPlayer2 = 0;
+		int contorRows = 0;
+		long timerPlayer1 = currentTimeMillis();
+		long timerPlayer2 = currentTimeMillis();
+		SDL_Event PlayerEvent;
+		int press = 0;
+
+		init();
+
+		while (continueGame)
+		{
+			SDL_Event event;
+		  while(continueGame&& !quit) {
+				SDL_PumpEvents();
+				drawBackground();
+				drawGrid(gridPlayer1,32,32);
+				drawGrid(gridPlayer2,608,32);
+				SDL_UpdateWindowSurface(pWindow);
+
+				if( ! canBeMovedLowerPlayer1 ) {
+					SetPiecePlaced(piecesPlayer1,gridPlayer1);
+					rowsCompletedPlayer1 = ProceedCompleteLine(piecesPlayer1,gridPlayer1);
+					CreatHoledLineInGrid(gridPlayer2,rowsCompletedPlayer1-1);
+					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
+					canBeMovedLowerPlayer1 = true;
+				}
+				if ( ! canBeMovedLowerPlayer2 ){
+					SetPiecePlaced(piecesPlayer2,gridPlayer2);
+					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
+					CreatHoledLineInGrid(gridPlayer1,rowsCompletedPlayer2-1);
+					piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
+					canBeMovedLowerPlayer2 = true;
+				}
+
+		    while(canBeMovedLowerPlayer1 && canBeMovedLowerPlayer2){
+						if (timerPlayer1 <= currentTimeMillis() ) {
+							timerPlayer1 = currentTimeMillis() + GetBlockSpeed(contorRows); //speed regarding completed rows
+							canBeMovedLowerPlayer1 = MovePiece(Down,piecesPlayer1,gridPlayer1);
+						}
+						if (timerPlayer2 <= currentTimeMillis() )  {
+							timerPlayer2 = currentTimeMillis() + GetBlockSpeed(contorRows);
+							canBeMovedLowerPlayer2 = MovePiece(Down,piecesPlayer2,gridPlayer2);
+						}
+						bool IAMustFindTheLocation = true;
+						while ( (timerPlayer1 > currentTimeMillis()) && (timerPlayer2 > currentTimeMillis()) ){
+									if(kbhit()){
+										switch ((press = getch())) {
+											// P1
+											case KEY_UP : RotatePiece(piecesPlayer1,gridPlayer1);break;
+											case KEY_DOWN : timerPlayer1 = currentTimeMillis(); break;
+											case KEY_LEFT : MovePiece(Left,piecesPlayer1,gridPlayer1); break;
+											case KEY_RIGHT : MovePiece(Right,piecesPlayer1,gridPlayer1); break;
+											// P2 is IA : not any move needed
+										}
+										// P2 Move
+										if(IAMustFindTheLocation){
+											IATable* bestMove = FindBestMove(piecesPlayer2,gridPlayer2);
+										  ExecuteIAMove(bestMove,piecesPlayer2,gridPlayer2);
+											IAMustFindTheLocation = false;
+										}
+										drawGrid(gridPlayer1,32,32);
+										drawGrid(gridPlayer2,608,32);
+										SDL_UpdateWindowSurface(pWindow);
+									}
+						}
+						drawGrid(gridPlayer1,32,32);
+						drawGrid(gridPlayer2,608,32);
+						SDL_UpdateWindowSurface(pWindow);
+		    }
+				if (rowsCompletedPlayer1 > 0 || rowsCompletedPlayer2 >0 ) {
+					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
+					rowsCompletedPlayer1  = 0;
+					rowsCompletedPlayer2 = 0;
+				}
+		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
+				if( event.type == SDL_QUIT ) quit = true;
+			}
+			SDL_UpdateWindowSurface(pWindow);
+
+			// Wait 3 second after player have lost
+			long shortWaitBeforeQuit = currentTimeMillis() + 3000; // 3000 is 3 second
+			while(shortWaitBeforeQuit > currentTimeMillis() ) {}
+
+			return true;
+		}
+}
+
 void test(){
 	TestIA();
 }
 
 int main(int argc, char** argv)
 {
-	printf("Terminal Tetris Menu\n\nEnter (1) from the numerical pad for a solo game\nEnter (2) from the numerical pad for duo game\n\n");
+	printf("Terminal Tetris Menu\n\nEnter (1) from the numerical pad for a solo game\nEnter (2) from the numerical pad for duo game\nEnter (3) from the numerical pad for versus IA\n");
 	int press = 0;
 	SDL_PumpEvents();
 
@@ -295,7 +396,7 @@ int main(int argc, char** argv)
 	switch (press) {
 		case KEY_PAV_NUM_1: GameSolo(); break;
 		case KEY_PAV_NUM_2: GameDuo(); break;
-		case KEY_PAV_NUM_3 : test(); break;
+		case KEY_PAV_NUM_3 : GameIA(); break;
 	}
 
 	while(true){}
