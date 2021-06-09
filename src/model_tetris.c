@@ -61,8 +61,13 @@ Block** InitialiseCopyGrid(Block** gridOrigin){
     return grid;
 }
 
-/*
-*/
+/* Initialise a grid by setting the different data of each block
+ * Will provide for each block :
+ *  - the correct row number
+ *  - collumn number
+ *  - activity state
+ *  - the disable center
+ *  - the kind of blocks : empty at the beginning */
 void InitialiseAllBlockEmpty(Block** grid){
     for(int row = 0 ; row<ROW; row++){
         for(int column = 0; column< COLUMN; column++){
@@ -75,6 +80,9 @@ void InitialiseAllBlockEmpty(Block** grid){
     }
 }
 
+/* function that initialise the second input grid like the first one
+ * It will go throught every blocks of the grid and copy every aspect for the target one
+ * It will result of two different pointer of a grid having the same properties     */
 void InitialiseWithCopy(Block** gridOrigin, Block** gridToCopy){
     for(int row = 0 ; row<ROW; row++){
         for(int column = 0; column< COLUMN; column++){
@@ -760,7 +768,8 @@ bool LostConditionMeet(Block** grid){
 /* Function return the speed of the piece (block per milis <=> 1000 is equivalent to 1s)
  * One level is pass each 5 rows completed (try 10 maybe)
  * The speed link to the level use an existing graph. Documentation is availbale into the folder doc
- *    [!] TAKE CARE [!] Input MUST BE the TOTAL amount of row achieve by the player   */
+ *    [!] TAKE CARE [!] Input MUST BE the TOTAL amount of row achieve by the player
+ * graph availbable at : https://gitlab.com/lburckert/projet-tetris-c/-/blob/master/doc/Speed_Lvl_Graph.png */
 long GetBlockSpeed(int rowCompleted){
   int NumberRowBetweenEachLevel = 5;
   int level = rowCompleted/NumberRowBetweenEachLevel; // Euclidian division
@@ -845,8 +854,10 @@ long GetBlockSpeedForIA(int rowCompleted){
     }
 }
 
+/*
+ *
+ */
 int demo(){
-
   Block** grid = InitialiseGrid();
   Block* pieces;
   bool continueGame = true;
