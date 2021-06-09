@@ -35,42 +35,53 @@ SDL_Surface* win_surf = NULL;
 SDL_Surface* plancheSprites = NULL;
 SDL_Surface* BackgroundSprites = NULL;
 SDL_Surface* BlocksSprites = NULL;
-
-SDL_Rect srcBlock = { 0,0, 32,32 }; // x,y, w,h (0,0) en haut a gauche  0,0,32,32
+SDL_Surface* MenuBackground = NULL;
+SDL_Surface* buttonSprite1P = NULL;
+SDL_Surface* buttonSprite2P = NULL;
+SDL_Surface* buttonSpriteIA = NULL;
+SDL_Rect srcBlock = { 0, 0, 32, 32 }; // x,y, w,h (0,0) en haut a gauche  0,0,32,32
+SDL_Rect srcMenuBlock = { 0, 0, 960, 672 };
+SDL_Rect srcButton1P = {30, 406, 172,207}; // BUTTON 1P
+SDL_Rect srcButton2P = {394, 406, 172,207}; // BUTTON 2P
+SDL_Rect srcButtonIA = {758, 406, 172,207}; // BUTTON IA
 /*  . - - - w - - - .
 	  |               |
 		h               h
 	  |               |
 	  . - - - w - - - .  */
 
-SDL_Rect srcGridSolo = { 352,160, 32,32 }; // x,y, w,h (0,0) en haut a gauche  0,0,32,32
+SDL_Rect srcGridSolo = { 352,160, CELL_PIXEL,CELL_PIXEL }; // x,y, w,h (0,0) en haut a gauche  0,0,32,32
 
-void init()
-{
+/* Function to initialise SDL basic needs
+ * it will create a windows with the correct name and load the picture needed for further prinitng */
+void init(){
 	pWindow = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 672, SDL_WINDOW_SHOWN);
 	win_surf = SDL_GetWindowSurface(pWindow);
-	//plancheSprites = SDL_LoadBMP("../bin/default_cell.bmp");
 	BackgroundSprites = SDL_LoadBMP("../bin/wall_cell.bmp");
+	MenuBackground = SDL_LoadBMP("../bin/menu.bmp");
+	buttonSprite1P = SDL_LoadBMP("../bin/buttonMenu1P.bmp");
+	buttonSprite2P = SDL_LoadBMP("../bin/buttonMenu2P.bmp");
+	buttonSpriteIA = SDL_LoadBMP("../bin/buttonMenuIA.bmp");
 	SDL_SetColorKey(plancheSprites, true, 0);  // 0: 00/00/00 noir -> transparent
 }
 
-void drawBackground()
-{
-	// remplit le fond
+/* Function to draw the all background of tetris game
+ * It will print several time the same basic picture saved as BackgroundSprites */
+void drawBackground(){
 	SDL_Rect dest = { 0,0,0,0 };
-	for (int j = 0; j < win_surf->h; j+=32)
-		for (int i = 0; i < win_surf->w; i += 32)
+	for (int j = 0; j < win_surf->h; j+=CELL_PIXEL){
+		for (int i = 0; i < win_surf->w; i += CELL_PIXEL)
 		{
 			dest.x = i;
 			dest.y = j;
 			SDL_BlitSurface(BackgroundSprites, &srcBlock, win_surf, &dest);
 		}
+	}
 }
 
 /* Function that draw a grid of blocks
- * Starting of the draw have to be input as pixel  starting at an index row and index column */
-void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight)
-{
+ * Starting of the draw have to be input as pixel starting at an index row and index column */
+void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight){
  SDL_Rect dest = { 0,0,0,0 };
  int rowOffset = 4;  //  acces visible pieces starting at the index 4 of the grid
  for(int row =0 ; row < VISIBLE_ROW ; row ++){
@@ -90,26 +101,52 @@ void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight)
 			dest.y = StartPixelHeight+row*CELL_PIXEL;
 			SDL_BlitSurface(BlocksSprites, &srcBlock, win_surf, &dest);
 		}
- }
+	}
+	SDL_UpdateWindowSurface(pWindow);
 }
 
+/* Function to provide a menu for Tetris game
+ * It will print the default image and then add the 3 buttons */
+void drawMenu(){
+	SDL_Rect srcMenuBlock = { 0,0,960,670 };
+	SDL_BlitSurface(MenuBackground, &srcMenuBlock, win_surf, &srcMenuBlock);
+	SDL_Rect srcButton = {0, 0, 172,207};
+	SDL_BlitSurface(buttonSprite1P,&srcButton,win_surf,&srcButton1P);
+	SDL_BlitSurface(buttonSprite2P,&srcButton,win_surf,&srcButton2P);
+	SDL_BlitSurface(buttonSpriteIA,&srcButton,win_surf,&srcButtonIA);
+	SDL_UpdateWindowSurface(pWindow);
+}
+
+/* function to provide the current time of the pc*/
 long currentTimeMillis() {
   struct timeval time;
   gettimeofday(&time, NULL);
-
   return time.tv_sec * 1000 + time.tv_usec / 1000;
 }
+
+/* funciton allowing to know if the input time is later than the current time
+ * It will be used for the tetris game */
 bool IsTimerOver(long inputTimeOver){
 	return inputTimeOver > currentTimeMillis();
 }
+
+/* function returning the next time before the pieces will move done as a mendatory move
+ * It use the curent time and add the duration calculated by GetBlockSpeed (see model_tetris.c) */
 long GetNextTimeOver(int contorRows){
 	return currentTimeMillis() + GetBlockSpeed(contorRows);
 }
 
+/* Funciton allowing to know if an input x and y are indeed in the inputed SDL Rect */
+bool XYInButton(SDL_Rect rect, int x, int y ){
+	if( ( rect.x <= x ) && ( (rect.x + rect.w) >= x)
+		&& ( rect.y <= y ) && ( (rect.y + rect.h) >= y)) return true;
+	else return false;
+}
+
+/* Tetris for only one player is managed at hight level in the following code  */
 bool GameSolo()
 {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
-
 		Block** grid = InitialiseGrid();
 		Block* pieces;
 		enum ShapeType* storedPiece;
@@ -127,13 +164,13 @@ bool GameSolo()
 		int press = 0;
 
 		init();
-
+		drawBackground();
 		while (continueGame)
 		{
 			SDL_Event event;
 		  while(continueGame && !quit) {
 				SDL_PumpEvents();
-				drawBackground();
+
 				drawGrid(grid,352,32);
 				SDL_UpdateWindowSurface(pWindow);
 		    pieces = InitialiseRandomPieces(grid);
@@ -155,7 +192,6 @@ bool GameSolo()
 												break;
 										}
 										drawGrid(grid,352,32);
-										PrintGrid(grid);
 										SDL_UpdateWindowSurface(pWindow);
 									}
 						}
@@ -169,21 +205,25 @@ bool GameSolo()
 				if (rowsCompleted > 0) {
 					contorRows =+ rowsCompleted ;
 					rowsCompleted = 0;
-					PrintGrid(grid);
 				}
 		    if(LostConditionMeet(grid)) continueGame = false;
 				if( event.type == SDL_QUIT ) quit = true;
 			}
 			SDL_UpdateWindowSurface(pWindow);
-
-			while(true){}
 		}
+		// Wait 3 second after player have lost
+		long shortWaitBeforeQuit = currentTimeMillis() + 3000; // 3000 is 3 second
+		while(shortWaitBeforeQuit > currentTimeMillis() ) {}
+
+		return true;
 }
 
+/*
+ *
+ */
 bool GameDuo()
 {
 		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
-
 		Block** gridPlayer1 = InitialiseGrid();
 		Block** gridPlayer2 = InitialiseGrid();
 		Block* piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
@@ -202,13 +242,13 @@ bool GameDuo()
 		int press = 0;
 
 		init();
-
+		drawBackground();
 		while (continueGame)
 		{
 			SDL_Event event;
 		  while(continueGame&& !quit) {
 				SDL_PumpEvents();
-				drawBackground();
+
 				drawGrid(gridPlayer1,32,32);
 				drawGrid(gridPlayer2,608,32);
 				SDL_UpdateWindowSurface(pWindow);
@@ -279,6 +319,9 @@ bool GameDuo()
 		}
 }
 
+/*
+ *
+ */
 bool GameIA()
 {
 		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
@@ -302,13 +345,12 @@ bool GameIA()
 		int press = 0;
 
 		init();
-
+		drawBackground();
 		while (continueGame)
 		{
 			SDL_Event event;
 		  while(continueGame&& !quit) {
 				SDL_PumpEvents();
-				drawBackground();
 				drawGrid(gridPlayer1,32,32);
 				drawGrid(gridPlayer2,608,32);
 				SDL_UpdateWindowSurface(pWindow);
@@ -384,26 +426,46 @@ bool GameIA()
 		}
 }
 
-void test(){
-	TestIA();
-}
 
 int main(int argc, char** argv)
 {
-	printf("Terminal Tetris Menu\n\nEnter (1) from the numerical pad for a solo game\nEnter (2) from the numerical pad for duo game\nEnter (3) from the numerical pad for versus IA\n");
-	int press = 0;
-	SDL_PumpEvents();
+	while (true){
+		int press = 0;
+		bool quit = false;
+		int choice = 0;
+		SDL_Event e;
+		int xMouse, yMouse;
+		SDL_PumpEvents();
+		init();
+		drawMenu();
+		// If a certain button is press, start the corresponding game
+		while(quit == false){
+	    while(SDL_PollEvent(&e) != 0){
+	        if((e.type == SDL_MOUSEBUTTONDOWN)){
+	            SDL_GetMouseState(&xMouse,&yMouse);
+							if(XYInButton(srcButton1P,xMouse,yMouse)){
+								choice = 1;
+								quit = true;
+							}
+							else if (XYInButton(srcButton2P,xMouse,yMouse)){
+								choice = 2;
+								quit = true;
+							}
+							else if (XYInButton(srcButtonIA,xMouse,yMouse)) {
+								choice = 3;
+								quit = true;
+							}
+	        }
+	    }
+		}
+		SDL_DestroyWindow(pWindow);
 
-	while(press == 0){
-			if(kbhit())press = getch();
-	}
-	printf("%d\n",press );
-	switch (press) {
-		case KEY_PAV_NUM_1: GameSolo(); break;
-		case KEY_PAV_NUM_2: GameDuo(); break;
-		case KEY_PAV_NUM_3 : GameIA(); break;
-		case 52 : test(); break;
-	}
+		switch(choice){
+			case 1 : GameSolo(); break;
+			case 2 : GameDuo(); break;
+			case 3 : GameIA(); break;
+		}
 
-	while(true){}
+		SDL_DestroyWindow(pWindow);
+	}
 }
