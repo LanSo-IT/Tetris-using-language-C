@@ -105,6 +105,11 @@ void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight){
 	SDL_UpdateWindowSurface(pWindow);
 }
 
+// TODO
+/* funciton to print the score on the screen with the input integer */
+void drawScore(int score,int startPixelWidth,int StartPixelHeight){
+
+}
 /* Function to provide a menu for Tetris game
  * It will print the default image and then add the 3 buttons */
 void drawMenu(){
@@ -175,6 +180,7 @@ bool GameSolo()
 			SDL_PumpEvents();
 			drawGrid(grid,352,32);
 			SDL_UpdateWindowSurface(pWindow);
+			free(pieces);
 	    pieces = InitialiseRandomPieces(grid);
 			canBeMovedLower = true;
 			// Pieces will move down until it cannot go lower
@@ -207,8 +213,10 @@ bool GameSolo()
 			canBeSwitch = true;
 			// In addition we remove from the grid the completed row an record the score
 	    rowsCompleted = ProceedCompleteLine(pieces,grid);
+			printf("rowsCompleted afected by ProceedCompleteLine is %d\n",rowsCompleted);
 			if (rowsCompleted > 0) {
-				contorRows =+ rowsCompleted ;
+				contorRows = contorRows +  rowsCompleted ;
+				printf("contorRows = %d\t rowsCompleted = %d\n",contorRows,rowsCompleted);
 				rowsCompleted = 0;
 			}
 			// finaly we check if the victory condition are reach
@@ -257,7 +265,7 @@ bool GameDuo()
 				drawGrid(gridPlayer1,32,32);
 				drawGrid(gridPlayer2,608,32);
 				SDL_UpdateWindowSurface(pWindow);
-				// Once pieces cannot go further down we set the pieces as placed
+				// Once pieces cannot go further down we set the pieces as placed for grid 1
 				if( ! canBeMovedLowerPlayer1 ) {
 					SetPiecePlaced(piecesPlayer1,gridPlayer1);
 					rowsCompletedPlayer1 = ProceedCompleteLine(piecesPlayer1,gridPlayer1);
@@ -265,6 +273,7 @@ bool GameDuo()
 					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
 					canBeMovedLowerPlayer1 = true;
 				}
+				// Once pieces cannot go further down we set the pieces as placed for grid 2
 				if ( ! canBeMovedLowerPlayer2 ){
 					SetPiecePlaced(piecesPlayer2,gridPlayer2);
 					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
@@ -306,12 +315,13 @@ bool GameDuo()
 						drawGrid(gridPlayer2,608,32);
 						SDL_UpdateWindowSurface(pWindow);
 		    }
-
+				// Record the score of lines
 				if (rowsCompletedPlayer1 > 0 || rowsCompletedPlayer2 >0 ) {
 					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
 					rowsCompletedPlayer1  = 0;
 					rowsCompletedPlayer2 = 0;
 				}
+				// finaly we check if the victory condition are reach
 		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
 				if( event.type == SDL_QUIT ) quit = true;
 			}
@@ -325,13 +335,11 @@ bool GameDuo()
 		}
 }
 
-/*
- *
- */
-bool GameIA()
-{
+/* Tetris playable for a human player and the IA
+ * It's the hight level game management */
+bool GameIA(){
 		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
-
+		// Start of a turn : init value for the turn
 		Block** gridPlayer1 = InitialiseGrid();
 		Block** gridPlayer2 = InitialiseGrid();
 		Block* piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
@@ -360,23 +368,26 @@ bool GameIA()
 				drawGrid(gridPlayer1,32,32);
 				drawGrid(gridPlayer2,608,32);
 				SDL_UpdateWindowSurface(pWindow);
-
+				// Once pieces cannot go further down we set the pieces as placed for grid 1
 				if( ! canBeMovedLowerPlayer1 ) {
 					SetPiecePlaced(piecesPlayer1,gridPlayer1);
 					rowsCompletedPlayer1 = ProceedCompleteLine(piecesPlayer1,gridPlayer1);
 					CreatHoledLineInGrid(piecesPlayer2,gridPlayer2,rowsCompletedPlayer1-1);
+					free(piecesPlayer1);
 					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
 					canBeMovedLowerPlayer1 = true;
 				}
+				// Once pieces cannot go further down we set the pieces as placed for grid 2
 				if ( ! canBeMovedLowerPlayer2 ){
 					SetPiecePlaced(piecesPlayer2,gridPlayer2);
 					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
 					CreatHoledLineInGrid(piecesPlayer1,gridPlayer1,rowsCompletedPlayer2-1);
+					free(piecesPlayer2);
 					piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
 					canBeMovedLowerPlayer2 = true;
 					IAMustFindTheLocation = true;
 				}
-
+				// Pieces of two player will move down until it cannot go lower
 		    while(canBeMovedLowerPlayer1 && canBeMovedLowerPlayer2){
 						if (timerPlayer1 <= currentTimeMillis() ) {
 							timerPlayer1 = currentTimeMillis() + GetBlockSpeed(contorRows); //speed regarding completed rows
@@ -414,11 +425,13 @@ bool GameIA()
 						drawGrid(gridPlayer2,608,32);
 						SDL_UpdateWindowSurface(pWindow);
 		    }
+				// Record the score of lines
 				if (rowsCompletedPlayer1 > 0 || rowsCompletedPlayer2 >0 ) {
 					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
 					rowsCompletedPlayer1  = 0;
 					rowsCompletedPlayer2 = 0;
 				}
+				// finaly we check if the victory condition are reach
 		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
 				if( event.type == SDL_QUIT ) quit = true;
 			}

@@ -643,7 +643,10 @@ int ProceedCompleteLine(Block* piece,Block** grid){
             RemoveLine(grid,specialRowsTable[i]);
             MoveGridBlocksDown(grid,specialRowsTable[i]);
         }
-    return specialRowsTable[0]; // Number of line complete, value beetween 0 and BLOCKS_PER_PIECES at the location of index 0 [Nb][..][..][..][..]
+    free(specialRowsTable);
+    printf("ProceedCompleteLine return %d\n",nbLineToDelete);
+    return nbLineToDelete; // Number of line complete, value beetween 0 and BLOCKS_PER_PIECES at the location of index 0 [Nb][..][..][..][..]
+
 }
 
 /* Function for multiplayer game only.
@@ -769,6 +772,7 @@ bool LostConditionMeet(Block** grid){
 long GetBlockSpeed(int rowCompleted){
   int NumberRowBetweenEachLevel = 5;
   int level = rowCompleted/NumberRowBetweenEachLevel; // Euclidian division
+  printf("GetBlockSpeed input rowCompleted is %d\n",rowCompleted);
   switch (level){
     case 0 : return 798; break;
     case 1 : return 715; break;
