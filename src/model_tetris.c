@@ -649,9 +649,9 @@ int ProceedCompleteLine(Block* piece,Block** grid){
 /* Function for multiplayer game only.
  * A certain qty of rows (almost complete : with one hole somewhere) will be added to a grid.
  * It will move up every block already placed and then add the holed line */
-void CreatHoledLineInGrid(Block** grid,int qty){
+void CreatHoledLineInGrid(Block* piece,Block** grid,int qty){
   for(int i=0 ; i< qty; i++){
-      MoveAllGridBlocksUp(grid);
+      MoveAllGridBlocksUp(piece,grid);
       SetHoledLine(grid,ROW -1 );
   }
 }
@@ -692,10 +692,9 @@ void MoveGridBlocksDown(Block** grid,int row){
 
 /* Move up every blocks based on a row index
  * Block will be moved up from the index row (to the first row (<=> row at the top of the grid)
- * [!] PLEASE MIND: piece coordinate will not be updated
  * [!] PLEASE MIND: no checks of line are done
  * [!] PLEASE MIND: Row index must be a empty line   */
-void MoveAllGridBlocksUp(Block** grid){
+void MoveAllGridBlocksUp(Block* piece,Block** grid){
     int row = 0;
     while (row <ROW -1){
         for(int column = 0; column < COLUMN; column++){
@@ -703,6 +702,9 @@ void MoveAllGridBlocksUp(Block** grid){
             grid[row][column].active = grid[row+1][column].active;
         }
         row++;
+    }
+    for(int i=0 ; i< BLOCKS_PER_PIECES; i++){
+      piece[i].row--;
     }
 }
 
@@ -721,22 +723,16 @@ void SetPiecePlaced(Block* piece,Block** grid){
 Block* ManagePlayerPiecesSwitch(enum ShapeType* storedPiecesType,Block* piece,Block** grid){
   if ((*storedPiecesType == EMPTY)){
       *storedPiecesType = piece[0].type;
-      printf("(if)Type stored is %d\n",*storedPiecesType);
       RemovePiecesFromGrid(piece,grid);
       piece = InitialiseRandomPieces(grid);
-      printf("(if)Type created is %d\n",piece[0].type);
       return piece;
   }
   else {
-    printf("(else)Type stored input is %d\n",*storedPiecesType);
-    printf("(else)Type created input is %d\n",piece[0].type);
       enum ShapeType typeToInstantiate;
       typeToInstantiate = *storedPiecesType;
       *storedPiecesType = piece[0].type;
       RemovePiecesFromGrid(piece,grid);
       piece = InitialisePieces(typeToInstantiate,grid);
-      printf("(else)Type stored is %d\n",*storedPiecesType);
-      printf("(else)Type created is %d\n",piece[0].type);
       return piece;
   }
 }

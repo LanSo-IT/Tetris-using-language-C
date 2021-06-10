@@ -147,80 +147,85 @@ bool XYInButton(SDL_Rect rect, int x, int y ){
 bool GameSolo()
 {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
-		Block** grid = InitialiseGrid();
-		Block* pieces;
-		enum ShapeType* storedPiece;
-		enum ShapeType testInit = EMPTY;
-		storedPiece = &testInit;
-		bool continueGame = true;
-		bool quit = false;
-		bool timeIsnotOverAtTheRow;
-		bool canBeMovedLower = true;
-		int rowsCompleted = 0;
-		int contorRows = 0;
-		bool canBeSwitch = true;
-		long timeBeforeMoveToNextRow;
-		SDL_Event PlayerEvent;
-		int press = 0;
+	// Initialise variable
+	Block** grid = InitialiseGrid();
+	Block* pieces;
+	enum ShapeType* storedPiece;
+	enum ShapeType testInit = EMPTY;
+	storedPiece = &testInit;
+	bool continueGame = true;
+	bool quit = false;
+	bool timeIsnotOverAtTheRow;
+	bool canBeMovedLower = true;
+	int rowsCompleted = 0;
+	int contorRows = 0;
+	bool canBeSwitch = true;
+	long timeBeforeMoveToNextRow;
+	SDL_Event PlayerEvent;
+	int press = 0;
 
-		init();
-		drawBackground();
-		while (continueGame)
-		{
-			SDL_Event event;
-		  while(continueGame && !quit) {
-				SDL_PumpEvents();
+	init();
+	drawBackground();
 
-				drawGrid(grid,352,32);
-				SDL_UpdateWindowSurface(pWindow);
-		    pieces = InitialiseRandomPieces(grid);
-				canBeMovedLower = true;
-		    while(canBeMovedLower){
-						timeBeforeMoveToNextRow = currentTimeMillis() + GetBlockSpeed(contorRows) ; //speed regarding completed rows
-						while ( timeBeforeMoveToNextRow > currentTimeMillis() ){
-									if(kbhit()){
-										switch ((press = getch())) {
-											case KEY_UP: RotatePiece(pieces,grid); break;
-											case KEY_DOWN: timeBeforeMoveToNextRow = currentTimeMillis(); break; // speed up pieces
-											case KEY_LEFT: MovePiece(Left,pieces,grid); break;
-											case KEY_RIGHT:MovePiece(Right,pieces,grid); break;
-											case KEY_PAV_NUM_0 : printf("zero !\n" );
-												if( canBeSwitch) {
-													pieces = ManagePlayerPiecesSwitch(storedPiece,pieces,grid);
-													canBeSwitch = false;
-												}
-												break;
-										}
-										drawGrid(grid,352,32);
-										SDL_UpdateWindowSurface(pWindow);
-									}
-						}
-						canBeMovedLower = MovePiece(Down,pieces,grid);
-						drawGrid(grid,352,32);
-						SDL_UpdateWindowSurface(pWindow);
-		    }
-		    SetPiecePlaced(pieces,grid);
-				canBeSwitch = true;
-		    rowsCompleted = ProceedCompleteLine(pieces,grid);
-				if (rowsCompleted > 0) {
-					contorRows =+ rowsCompleted ;
-					rowsCompleted = 0;
-				}
-		    if(LostConditionMeet(grid)) continueGame = false;
-				if( event.type == SDL_QUIT ) quit = true;
-			}
+	while (continueGame)
+	{
+		SDL_Event event;
+	  while(continueGame && !quit) {
+			// Start of a turn : init value for the turn
+			SDL_PumpEvents();
+			drawGrid(grid,352,32);
 			SDL_UpdateWindowSurface(pWindow);
+	    pieces = InitialiseRandomPieces(grid);
+			canBeMovedLower = true;
+			// Pieces will move down until it cannot go lower
+	    while(canBeMovedLower){
+					timeBeforeMoveToNextRow = currentTimeMillis() + GetBlockSpeed(contorRows) ; //speed of blocks regarding completed rows
+					while ( timeBeforeMoveToNextRow > currentTimeMillis() ){
+								if(kbhit()){
+									switch ((press = getch())) {
+										case KEY_UP: RotatePiece(pieces,grid); break;
+										case KEY_DOWN: timeBeforeMoveToNextRow = currentTimeMillis(); break; // speed up pieces
+										case KEY_LEFT: MovePiece(Left,pieces,grid); break;
+										case KEY_RIGHT:MovePiece(Right,pieces,grid); break;
+										case KEY_PAV_NUM_0 : printf("zero !\n" );
+											if( canBeSwitch) {
+												pieces = ManagePlayerPiecesSwitch(storedPiece,pieces,grid);
+												canBeSwitch = false;// can be switch only once per turn
+											}
+											break;
+									}
+									drawGrid(grid,352,32);
+									SDL_UpdateWindowSurface(pWindow);
+								}
+					}
+					canBeMovedLower = MovePiece(Down,pieces,grid);
+					drawGrid(grid,352,32);
+					SDL_UpdateWindowSurface(pWindow);
+	    }
+			// Once pieces cannot go further down we set the pieces as placed
+	    SetPiecePlaced(pieces,grid);
+			canBeSwitch = true;
+			// In addition we remove from the grid the completed row an record the score
+	    rowsCompleted = ProceedCompleteLine(pieces,grid);
+			if (rowsCompleted > 0) {
+				contorRows =+ rowsCompleted ;
+				rowsCompleted = 0;
+			}
+			// finaly we check if the victory condition are reach
+	    if(LostConditionMeet(grid)) continueGame = false;
+			if( event.type == SDL_QUIT ) quit = true;
 		}
-		// Wait 3 second after player have lost
-		long shortWaitBeforeQuit = currentTimeMillis() + 3000; // 3000 is 3 second
-		while(shortWaitBeforeQuit > currentTimeMillis() ) {}
+		SDL_UpdateWindowSurface(pWindow);
+	}
+	// Wait 3 second after player have lost
+	long shortWaitBeforeQuit = currentTimeMillis() + 3000; // 3000 is 3 second
+	while(shortWaitBeforeQuit > currentTimeMillis() ) {}
 
-		return true;
+	return true;
 }
 
-/*
- *
- */
+/* Tetris playable for two human players
+ * It's the hight level game management */
 bool GameDuo()
 {
 		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
@@ -247,27 +252,27 @@ bool GameDuo()
 		{
 			SDL_Event event;
 		  while(continueGame&& !quit) {
+				// Start of a turn : init value for the turn
 				SDL_PumpEvents();
-
 				drawGrid(gridPlayer1,32,32);
 				drawGrid(gridPlayer2,608,32);
 				SDL_UpdateWindowSurface(pWindow);
-
+				// Once pieces cannot go further down we set the pieces as placed
 				if( ! canBeMovedLowerPlayer1 ) {
 					SetPiecePlaced(piecesPlayer1,gridPlayer1);
 					rowsCompletedPlayer1 = ProceedCompleteLine(piecesPlayer1,gridPlayer1);
-					CreatHoledLineInGrid(gridPlayer2,rowsCompletedPlayer1-1);
+					CreatHoledLineInGrid(piecesPlayer2,gridPlayer2,rowsCompletedPlayer1-1);
 					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
 					canBeMovedLowerPlayer1 = true;
 				}
 				if ( ! canBeMovedLowerPlayer2 ){
 					SetPiecePlaced(piecesPlayer2,gridPlayer2);
 					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
-					CreatHoledLineInGrid(gridPlayer1,rowsCompletedPlayer2-1);
+					CreatHoledLineInGrid(piecesPlayer1,gridPlayer1,rowsCompletedPlayer2-1);
 					piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
 					canBeMovedLowerPlayer2 = true;
 				}
-
+				// Pieces of two player will move down until it cannot go lower
 		    while(canBeMovedLowerPlayer1 && canBeMovedLowerPlayer2){
 						if (timerPlayer1 <= currentTimeMillis() ) {
 							timerPlayer1 = currentTimeMillis() + GetBlockSpeed(contorRows); //speed regarding completed rows
@@ -301,6 +306,7 @@ bool GameDuo()
 						drawGrid(gridPlayer2,608,32);
 						SDL_UpdateWindowSurface(pWindow);
 		    }
+
 				if (rowsCompletedPlayer1 > 0 || rowsCompletedPlayer2 >0 ) {
 					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
 					rowsCompletedPlayer1  = 0;
@@ -358,14 +364,14 @@ bool GameIA()
 				if( ! canBeMovedLowerPlayer1 ) {
 					SetPiecePlaced(piecesPlayer1,gridPlayer1);
 					rowsCompletedPlayer1 = ProceedCompleteLine(piecesPlayer1,gridPlayer1);
-					CreatHoledLineInGrid(gridPlayer2,rowsCompletedPlayer1-1);
+					CreatHoledLineInGrid(piecesPlayer2,gridPlayer2,rowsCompletedPlayer1-1);
 					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
 					canBeMovedLowerPlayer1 = true;
 				}
 				if ( ! canBeMovedLowerPlayer2 ){
 					SetPiecePlaced(piecesPlayer2,gridPlayer2);
 					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
-					CreatHoledLineInGrid(gridPlayer1,rowsCompletedPlayer2-1);
+					CreatHoledLineInGrid(piecesPlayer1,gridPlayer1,rowsCompletedPlayer2-1);
 					piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
 					canBeMovedLowerPlayer2 = true;
 					IAMustFindTheLocation = true;

@@ -16,7 +16,7 @@ bool ProceedCompleteLine(Block* piece,Block** grid);
 bool LostConditionMeet(Block** grid);
 long GetBlockSpeed(int rowCompleted);
 
-void CreatHoledLineInGrid(Block** grid,int qty); // 2P Game
+void CreatHoledLineInGrid(Block* piece,Block** grid,int qty); // 2P Game
 
 void PrintGrid(Block** grid); //debug purpose
 
