@@ -188,10 +188,12 @@ IATable* FindBestMove(Block* piece,Block** grid){
     for(int moveLeft=0; moveLeft < COLUMN/2; moveLeft++){
       tmp = GetIATable(piece,grid,Left,moveLeft,rotation);
       if (tmp->score > iaTable->score) iaTable = tmp;
+      free(tmp);
     }
     for(int moveRight=0; moveRight < COLUMN/2; moveRight++){
       tmp = GetIATable(piece,grid,Right,moveRight,rotation);
       if (tmp->score > iaTable->score) iaTable = tmp;
+        free(tmp);
     }
   }
   free(tmp);
