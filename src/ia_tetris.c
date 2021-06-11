@@ -32,6 +32,11 @@ Link : https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-pl
 * The score of the grid regading 4 factors such as Aggregate height + Complete line + holes + bumpiness     */
 IATable* InitialiseIATable(enum MoveType moveType,int qtyMove,int qtyRotation){
   IATable* tableIA = (IATable*)malloc(1*sizeof(IATable));
+  SetIATable(tableIA,moveType,qtyMove,qtyRotation);
+  return tableIA;
+}
+
+void SetIATable(IATable* tableIA,enum MoveType moveType,int qtyMove,int qtyRotation){
   // init Score
   tableIA->score = -9999;
   // init qty move regading move type
@@ -46,11 +51,9 @@ IATable* InitialiseIATable(enum MoveType moveType,int qtyMove,int qtyRotation){
   }
   // init rotation number
   tableIA->rotation = qtyRotation;
-
-  return tableIA;
 }
 
-// Debug purpose
+/* Debug purpose */
 void PrintIATAble(IATable* input){
   printf("[%d][%d][%d][%d]\n",input->score,input->rotation,input->qtyMoveLeft,input->qtyMoveRight);
   printf("  |  |  |  |\n");
@@ -188,12 +191,10 @@ IATable* FindBestMove(Block* piece,Block** grid){
     for(int moveLeft=0; moveLeft < COLUMN/2; moveLeft++){
       tmp = GetIATable(piece,grid,Left,moveLeft,rotation);
       if (tmp->score > iaTable->score) iaTable = tmp;
-      free(tmp);
     }
     for(int moveRight=0; moveRight < COLUMN/2; moveRight++){
       tmp = GetIATable(piece,grid,Right,moveRight,rotation);
       if (tmp->score > iaTable->score) iaTable = tmp;
-        free(tmp);
     }
   }
   free(tmp);

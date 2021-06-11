@@ -644,7 +644,6 @@ int ProceedCompleteLine(Block* piece,Block** grid){
             MoveGridBlocksDown(grid,specialRowsTable[i]);
         }
     free(specialRowsTable);
-    printf("ProceedCompleteLine return %d\n",nbLineToDelete);
     return nbLineToDelete; // Number of line complete, value beetween 0 and BLOCKS_PER_PIECES at the location of index 0 [Nb][..][..][..][..]
 
 }
@@ -772,7 +771,6 @@ bool LostConditionMeet(Block** grid){
 long GetBlockSpeed(int rowCompleted){
   int NumberRowBetweenEachLevel = 5;
   int level = rowCompleted/NumberRowBetweenEachLevel; // Euclidian division
-  printf("GetBlockSpeed input rowCompleted is %d\n",rowCompleted);
   switch (level){
     case 0 : return 798; break;
     case 1 : return 715; break;
@@ -852,6 +850,20 @@ long GetBlockSpeedForIA(int rowCompleted){
       printf("[WARNNING]: Lvl cannot be used ");
       return 1;
     }
+}
+
+/* Function returning the score to print on the screen
+ * The current score and the row completed must be provided
+ * TAKE CARE : there is no break, score will be update in a waterfall manner*/
+int UpdateScoreTetris(int score,int rowCompleted){
+  switch(rowCompleted){
+    case 4 : score = score + 20;
+    case 3 : score = score + 15;
+    case 2 : score = score + 10;
+    case 1 : score = score + 5;
+    case 0 : score++;
+  }
+  return score ;
 }
 
 /*

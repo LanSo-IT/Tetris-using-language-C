@@ -39,6 +39,7 @@ SDL_Surface* MenuBackground = NULL;
 SDL_Surface* buttonSprite1P = NULL;
 SDL_Surface* buttonSprite2P = NULL;
 SDL_Surface* buttonSpriteIA = NULL;
+SDL_Surface *asciiSpriteNumber[10] = {NULL};;
 SDL_Rect srcBlock = { 0, 0, 32, 32 }; // x,y, w,h (0,0) en haut a gauche  0,0,32,32
 SDL_Rect srcMenuBlock = { 0, 0, 960, 672 };
 SDL_Rect srcButton1P = {30, 406, 172,207}; // BUTTON 1P
@@ -49,7 +50,6 @@ SDL_Rect srcButtonIA = {758, 406, 172,207}; // BUTTON IA
 		h               h
 	  |               |
 	  . - - - w - - - .  */
-
 SDL_Rect srcGridSolo = { 352,160, CELL_PIXEL,CELL_PIXEL }; // x,y, w,h (0,0) en haut a gauche  0,0,32,32
 
 /* Function to initialise SDL basic needs
@@ -62,6 +62,18 @@ void init(){
 	buttonSprite1P = SDL_LoadBMP("../bin/buttonMenu1P.bmp");
 	buttonSprite2P = SDL_LoadBMP("../bin/buttonMenu2P.bmp");
 	buttonSpriteIA = SDL_LoadBMP("../bin/buttonMenuIA.bmp");
+
+	// Load bitmap recursivly for ascii
+	char fileNo[] = "0";
+	for(int i=0 ; i<10 ;i++){
+		char path[] = "../bin/digits/";
+		char extension[] = ".bmp";
+		int tmp = i;
+		itoa(i, fileNo, 10);
+    strcat(path,fileNo);
+		strcat(path,extension);
+		asciiSpriteNumber[i] = SDL_LoadBMP(path);
+	}
 	SDL_SetColorKey(plancheSprites, true, 0);  // 0: 00/00/00 noir -> transparent
 }
 
@@ -105,10 +117,40 @@ void drawGrid(Block** grid,int startPixelWidth,int StartPixelHeight){
 	SDL_UpdateWindowSurface(pWindow);
 }
 
-// TODO
-/* funciton to print the score on the screen with the input integer */
+/* Function to print the score on the screen with the input integer */
 void drawScore(int score,int startPixelWidth,int StartPixelHeight){
+	SDL_Rect dest = { 0,0,0,0 };
+	dest.y = StartPixelHeight;
+	int totalLength = floor(log10(abs((double) score)) + 1);
+	char valueAsString[totalLength];
+	itoa(score, valueAsString, 10);
+	char tmp[1];
+	int digits;
+	for(int i=0; i<totalLength; i++ ){
+		tmp[0] = valueAsString[i];
+		digits = atoi(tmp);
+		dest.x = startPixelWidth+i*CELL_PIXEL+32;
+		SDL_BlitSurface(asciiSpriteNumber[digits], &srcBlock, win_surf, &dest);
+	}
+}
 
+/*Function for 1P game that show the stored piece */
+void drawStoredPiece(enum ShapeType* storedPiece,int startPixelWidth,int StartPixelHeight){
+	SDL_Rect dest = { 0,0,0,0 };
+	dest.x = startPixelWidth;
+	dest.y = StartPixelHeight;
+	switch (*storedPiece){
+		case EMPTY: BlocksSprites =  SDL_LoadBMP("../bin/basic_cell.bmp"); break;
+		case I: BlocksSprites =  SDL_LoadBMP("../bin/I_cell.bmp"); break;
+		case O: BlocksSprites =  SDL_LoadBMP("../bin/O_cell.bmp"); break;
+		case L :  BlocksSprites =  SDL_LoadBMP("../bin/L_cell.bmp"); break;
+		case J :  BlocksSprites =  SDL_LoadBMP("../bin/J_cell.bmp"); break;
+		case T :  BlocksSprites =  SDL_LoadBMP("../bin/T_cell.bmp"); break;
+		case S :  BlocksSprites =  SDL_LoadBMP("../bin/S_cell.bmp"); break;
+		case Z :  BlocksSprites =  SDL_LoadBMP("../bin/Z_cell.bmp"); break;
+		default : BlocksSprites = SDL_LoadBMP("../bin/error_cell.bmp");
+	}
+	SDL_BlitSurface(BlocksSprites, &srcBlock, win_surf, &dest);
 }
 /* Function to provide a menu for Tetris game
  * It will print the default image and then add the 3 buttons */
@@ -122,26 +164,26 @@ void drawMenu(){
 	SDL_UpdateWindowSurface(pWindow);
 }
 
-/* function to provide the current time of the pc*/
+/* Function to provide the current time of the pc*/
 long currentTimeMillis() {
   struct timeval time;
   gettimeofday(&time, NULL);
   return time.tv_sec * 1000 + time.tv_usec / 1000;
 }
 
-/* funciton allowing to know if the input time is later than the current time
+/* Function allowing to know if the input time is later than the current time
  * It will be used for the tetris game */
 bool IsTimerOver(long inputTimeOver){
 	return inputTimeOver > currentTimeMillis();
 }
 
-/* function returning the next time before the pieces will move done as a mendatory move
+/* Function returning the next time before the pieces will move done as a mendatory move
  * It use the curent time and add the duration calculated by GetBlockSpeed (see model_tetris.c) */
 long GetNextTimeOver(int contorRows){
 	return currentTimeMillis() + GetBlockSpeed(contorRows);
 }
 
-/* Funciton allowing to know if an input x and y are indeed in the inputed SDL Rect */
+/* Function allowing to know if an input x and y are indeed in the inputed SDL Rect */
 bool XYInButton(SDL_Rect rect, int x, int y ){
 	if( ( rect.x <= x ) && ( (rect.x + rect.w) >= x)
 		&& ( rect.y <= y ) && ( (rect.y + rect.h) >= y)) return true;
@@ -149,8 +191,7 @@ bool XYInButton(SDL_Rect rect, int x, int y ){
 }
 
 /* Tetris for only one player is managed at hight level in the following code  */
-bool GameSolo()
-{
+bool GameSolo(){
 	if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
 	// Initialise variable
 	Block** grid = InitialiseGrid();
@@ -168,14 +209,17 @@ bool GameSolo()
 	long timeBeforeMoveToNextRow;
 	SDL_Event PlayerEvent;
 	int press = 0;
+	int score=0;
 
 	init();
 	drawBackground();
+	drawStoredPiece(storedPiece,704,96);
 
 	while (continueGame)
 	{
 		SDL_Event event;
 	  while(continueGame && !quit) {
+			SDL_FreeSurface(win_surf);
 			// Start of a turn : init value for the turn
 			SDL_PumpEvents();
 			drawGrid(grid,352,32);
@@ -183,6 +227,7 @@ bool GameSolo()
 			free(pieces);
 	    pieces = InitialiseRandomPieces(grid);
 			canBeMovedLower = true;
+			rowsCompleted = 0;
 			// Pieces will move down until it cannot go lower
 	    while(canBeMovedLower){
 					timeBeforeMoveToNextRow = currentTimeMillis() + GetBlockSpeed(contorRows) ; //speed of blocks regarding completed rows
@@ -197,9 +242,11 @@ bool GameSolo()
 											if( canBeSwitch) {
 												pieces = ManagePlayerPiecesSwitch(storedPiece,pieces,grid);
 												canBeSwitch = false;// can be switch only once per turn
+												drawStoredPiece(storedPiece,704,96);
 											}
 											break;
 									}
+
 									drawGrid(grid,352,32);
 									SDL_UpdateWindowSurface(pWindow);
 								}
@@ -213,12 +260,12 @@ bool GameSolo()
 			canBeSwitch = true;
 			// In addition we remove from the grid the completed row an record the score
 	    rowsCompleted = ProceedCompleteLine(pieces,grid);
-			printf("rowsCompleted afected by ProceedCompleteLine is %d\n",rowsCompleted);
 			if (rowsCompleted > 0) {
 				contorRows = contorRows +  rowsCompleted ;
-				printf("contorRows = %d\t rowsCompleted = %d\n",contorRows,rowsCompleted);
-				rowsCompleted = 0;
 			}
+			// Update of the score
+			score = UpdateScoreTetris(score,rowsCompleted);
+			drawScore(score,672,32);
 			// finaly we check if the victory condition are reach
 	    if(LostConditionMeet(grid)) continueGame = false;
 			if( event.type == SDL_QUIT ) quit = true;
@@ -234,8 +281,7 @@ bool GameSolo()
 
 /* Tetris playable for two human players
  * It's the hight level game management */
-bool GameDuo()
-{
+bool GameDuo(){
 		if (SDL_Init(SDL_INIT_VIDEO) != 0 ) return 1;
 		Block** gridPlayer1 = InitialiseGrid();
 		Block** gridPlayer2 = InitialiseGrid();
@@ -253,11 +299,14 @@ bool GameDuo()
 		long timerPlayer2 = currentTimeMillis();
 		SDL_Event PlayerEvent;
 		int press = 0;
+		int scorePlayer1 = 0;
+		int scorePlayer2 = 0;
 
 		init();
 		drawBackground();
 		while (continueGame)
 		{
+			SDL_FreeSurface(win_surf);
 			SDL_Event event;
 		  while(continueGame&& !quit) {
 				// Start of a turn : init value for the turn
@@ -265,11 +314,14 @@ bool GameDuo()
 				drawGrid(gridPlayer1,32,32);
 				drawGrid(gridPlayer2,608,32);
 				SDL_UpdateWindowSurface(pWindow);
+				rowsCompletedPlayer1  = 0;
+				rowsCompletedPlayer2 = 0;
 				// Once pieces cannot go further down we set the pieces as placed for grid 1
 				if( ! canBeMovedLowerPlayer1 ) {
 					SetPiecePlaced(piecesPlayer1,gridPlayer1);
 					rowsCompletedPlayer1 = ProceedCompleteLine(piecesPlayer1,gridPlayer1);
 					CreatHoledLineInGrid(piecesPlayer2,gridPlayer2,rowsCompletedPlayer1-1);
+					free(piecesPlayer1);
 					piecesPlayer1 = InitialiseRandomPieces(gridPlayer1);
 					canBeMovedLowerPlayer1 = true;
 				}
@@ -278,6 +330,7 @@ bool GameDuo()
 					SetPiecePlaced(piecesPlayer2,gridPlayer2);
 					rowsCompletedPlayer2 = ProceedCompleteLine(piecesPlayer2,gridPlayer2);
 					CreatHoledLineInGrid(piecesPlayer1,gridPlayer1,rowsCompletedPlayer2-1);
+					free(piecesPlayer2);
 					piecesPlayer2 = InitialiseRandomPieces(gridPlayer2);
 					canBeMovedLowerPlayer2 = true;
 				}
@@ -318,8 +371,15 @@ bool GameDuo()
 				// Record the score of lines
 				if (rowsCompletedPlayer1 > 0 || rowsCompletedPlayer2 >0 ) {
 					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
-					rowsCompletedPlayer1  = 0;
-					rowsCompletedPlayer2 = 0;
+				}
+				// Update of the score
+				if( canBeMovedLowerPlayer1 ) {
+					scorePlayer2 = UpdateScoreTetris(scorePlayer2,rowsCompletedPlayer2);
+					drawScore(scorePlayer2,352,128);
+				}
+				if ( canBeMovedLowerPlayer2 ) {
+					scorePlayer1 = UpdateScoreTetris(scorePlayer1,rowsCompletedPlayer1);
+					drawScore(scorePlayer1,352,32);
 				}
 				// finaly we check if the victory condition are reach
 		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
@@ -357,17 +417,25 @@ bool GameIA(){
 		long timerPlayer2 = currentTimeMillis();
 		SDL_Event PlayerEvent;
 		int press = 0;
+		int scorePlayer1=0;
+		int scorePlayer2=0;
 
 		init();
 		drawBackground();
+
 		while (continueGame)
 		{
+
 			SDL_Event event;
 		  while(continueGame&& !quit) {
+				SDL_FreeSurface(win_surf);
+				// Start of a turn : init value for the turn
 				SDL_PumpEvents();
 				drawGrid(gridPlayer1,32,32);
 				drawGrid(gridPlayer2,608,32);
 				SDL_UpdateWindowSurface(pWindow);
+				rowsCompletedPlayer1  = 0;
+				rowsCompletedPlayer2 = 0;
 				// Once pieces cannot go further down we set the pieces as placed for grid 1
 				if( ! canBeMovedLowerPlayer1 ) {
 					SetPiecePlaced(piecesPlayer1,gridPlayer1);
@@ -428,8 +496,15 @@ bool GameIA(){
 				// Record the score of lines
 				if (rowsCompletedPlayer1 > 0 || rowsCompletedPlayer2 >0 ) {
 					contorRows = contorRows + rowsCompletedPlayer1 + rowsCompletedPlayer2 ;
-					rowsCompletedPlayer1  = 0;
-					rowsCompletedPlayer2 = 0;
+				}
+				// Update of the score
+				if( canBeMovedLowerPlayer1 ) {
+					scorePlayer2 = UpdateScoreTetris(scorePlayer2,rowsCompletedPlayer2);
+					drawScore(scorePlayer2,352,128);
+				}
+				if ( canBeMovedLowerPlayer2 ) {
+					scorePlayer1 = UpdateScoreTetris(scorePlayer1,rowsCompletedPlayer1);
+					drawScore(scorePlayer1,352,32);
 				}
 				// finaly we check if the victory condition are reach
 		    if(LostConditionMeet(gridPlayer1) || LostConditionMeet(gridPlayer2)) continueGame = false;
@@ -446,8 +521,7 @@ bool GameIA(){
 }
 
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
 	while (true){
 		int press = 0;
 		bool quit = false;
